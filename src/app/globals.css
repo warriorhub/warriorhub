@@ -12,3 +12,12 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+.footer-dark {
+  background-color: #0b3d2e;
+  color: #fff;
+}
+
+.footer-dark a {
+  color: #cde7d8;
+}
