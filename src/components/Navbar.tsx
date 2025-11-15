@@ -42,6 +42,9 @@ const NavBar: React.FC = () => {
             )}
           </Nav>
           <Nav>
+            <Nav.Link id="search-events-nav" href="/search" key="search" active={pathName === '/search'}>
+                    Search Events
+            </Nav.Link>
             {session ? (
               <NavDropdown id="login-dropdown" title={currentUser}>
                 <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
