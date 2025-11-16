@@ -28,6 +28,11 @@ model User {
   password String
   role     Role   @default(USER)
 }
+enum UserType {
+  user
+  organizer
+  admin
+}
 
 enum Condition {
   excellent
