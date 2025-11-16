@@ -19,6 +19,7 @@ datasource db {
 
 enum Role {
   USER
+  ORGANIZER
   ADMIN
 }
 
@@ -27,11 +28,6 @@ model User {
   email    String @unique
   password String
   role     Role   @default(USER)
-}
-enum UserType {
-  user
-  organizer
-  admin
 }
 
 enum Condition {
