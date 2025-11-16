@@ -19,6 +19,7 @@ datasource db {
 
 enum Role {
   USER
+  ORGANIZER
   ADMIN
 }
 
@@ -29,6 +30,10 @@ model User {
   role     Role   @default(USER)
 }
 
+model Event {
+  id       String   @id @default(uuid(4))
+  dateTime DateTime
+}
 enum Condition {
   excellent
   good
