@@ -31,9 +31,19 @@ model User {
 }
 
 model Event {
-  id       String   @id @default(uuid(4))
-  dateTime DateTime
+  id        String   @id @default(uuid(4))
+  name      String   @default("An event at UH Manoa")
+  dateTime  DateTime
+  organizer String
+  size      Size?
 }
+
+enum Size {
+  small
+  medium
+  large
+}
+
 enum Condition {
   excellent
   good
