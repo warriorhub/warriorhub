@@ -30,6 +30,10 @@ model User {
   role     Role   @default(USER)
 }
 
+model Event {
+  id       String   @id @default(uuid(4))
+  dateTime DateTime
+}
 enum Condition {
   excellent
   good
