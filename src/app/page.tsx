@@ -1,22 +1,21 @@
-'use client';
+import { Col, Container, Image, Row } from 'react-bootstrap';
 
-import { useSession } from 'next-auth/react';
-import LandingPage from '@/components/LandingPage';
-import UserHome from '@/components/UserHome';
-import { Container } from 'react-bootstrap';
+/** The Home page. */
+const Home = () => (
+  <main>
+    <Container id="landing-page" fluid className="py-3">
+      <Row className="align-middle text-center">
+        <Col xs={4}>
+          <Image src="next.svg" width="150px" alt="" />
+        </Col>
 
-/** The Home/Root page */
-export default function Home() {
-  const { data: session, status } = useSession();
+        <Col xs={8} className="d-flex flex-column justify-content-center">
+          <h1>Welcome to this template</h1>
+          <p>Now get to work and modify this app!</p>
+        </Col>
+      </Row>
+    </Container>
+  </main>
+);
 
-  if (status === 'loading') {
-    return (
-      <Container className="py-5 text-center">
-        <p>Loading...</p>
-      </Container>
-    );
-  }
-
-  // Show UserHome if logged in, otherwise show LandingPage
-  return session ? <UserHome /> : <LandingPage />;
-}
+export default Home;
