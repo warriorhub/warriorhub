@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import LandingPage from '@/components/LandingPage';
-import UserHome from '@/components/UserHome';
+// import UserHome from '@/components/UserHome';
 import { Container } from 'react-bootstrap';
 
 /** The Home/Root page */
