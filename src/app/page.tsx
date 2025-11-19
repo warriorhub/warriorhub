@@ -18,5 +18,6 @@ export default function Home() {
   }
 
   // Show UserHome if logged in, otherwise show LandingPage
-  return session ? <UserHome /> : <LandingPage />;
+  // return session ? <UserHome /> : <LandingPage />;
+  return <LandingPage />;
 }
