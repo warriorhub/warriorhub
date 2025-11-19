@@ -14,15 +14,20 @@ const NavBar: React.FC = () => {
   const role = userWithRole?.randomKey;
   const pathName = usePathname();
   return (
-    <Navbar expand="lg" className="navbar-dark" style={{ backgroundColor: '#024731', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+    <Navbar
+      expand="lg"
+      className="navbar-dark"
+      style={{ backgroundColor: '#024731',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
+    >
       <Container>
-        <Navbar.Brand 
-          href="/" 
+        <Navbar.Brand
+          href="/"
           className="text-white"
           style={{
             fontSize: '1.5rem',
             fontWeight: '600',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
           }}
         >
           WarriorHub
@@ -30,20 +35,20 @@ const NavBar: React.FC = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto justify-content-start">
-            <Nav.Link 
-              id="home-nav" 
-              href="/" 
-              key="home" 
+            <Nav.Link
+              id="home-nav"
+              href="/"
+              key="home"
               active={pathName === '/'}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
             >
               Home
             </Nav.Link>
-            <Nav.Link 
-              id="search-events-nav" 
-              href="/search" 
-              key="search" 
+            <Nav.Link
+              id="search-events-nav"
+              href="/search"
+              key="search"
               active={pathName === '/search'}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -51,10 +56,10 @@ const NavBar: React.FC = () => {
               Search Events
             </Nav.Link>
             {currentUser && (
-              <Nav.Link 
-                id="my-events-nav" 
-                href="/myevents" 
-                key="myevents" 
+              <Nav.Link
+                id="my-events-nav"
+                href="/myevents"
+                key="myevents"
                 active={pathName === '/myevents'}
                 className="text-white mx-2"
                 style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -63,10 +68,10 @@ const NavBar: React.FC = () => {
               </Nav.Link>
             )}
             {currentUser && role === 'ADMIN' && (
-              <Nav.Link 
-                id="admin-stuff-nav" 
-                href="/admin" 
-                key="admin" 
+              <Nav.Link
+                id="admin-stuff-nav"
+                href="/admin"
+                key="admin"
                 active={pathName === '/admin'}
                 className="text-white mx-2"
                 style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -80,22 +85,26 @@ const NavBar: React.FC = () => {
               <NavDropdown id="login-dropdown" title={currentUser} className="text-white">
                 <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
                   <BoxArrowRight />
-                  {' '}Sign Out
+                  {' '}
+Sign Out
                 </NavDropdown.Item>
                 <NavDropdown.Item id="login-dropdown-change-password" href="/auth/change-password">
                   <Lock />
-                  {' '}Change Password
+                  {' '}
+Change Password
                 </NavDropdown.Item>
               </NavDropdown>
             ) : (
               <NavDropdown id="login-dropdown" title="Login" className="text-white">
                 <NavDropdown.Item id="login-dropdown-sign-in" href="/auth/signin">
                   <PersonFill />
-                  {' '}Sign in
+                  {' '}
+Sign in
                 </NavDropdown.Item>
                 <NavDropdown.Item id="login-dropdown-sign-up" href="/auth/signup">
                   <PersonPlusFill />
-                  {' '}Sign up
+                  {' '}
+Sign up
                 </NavDropdown.Item>
               </NavDropdown>
             )}
