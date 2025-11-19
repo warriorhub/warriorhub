@@ -59,7 +59,7 @@ const NavBar: React.FC = () => {
               <Nav.Link
                 id="my-events-nav"
                 // href="/myevents"
-                href=""
+                href="/"
                 key="myevents"
                 active={pathName === '/myevents'}
                 className="text-white mx-2"
