@@ -24,18 +24,20 @@ enum Role {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
-  role     Role   @default(USER)
+  id               Int     @id @default(autoincrement())
+  email            String  @unique
+  password         String
+  role             Role    @default(USER)
+  interestedEvents Event[]
 }
 
 model Event {
-  id        String   @id @default(uuid(4))
-  name      String   @default("An event at UH Manoa")
-  dateTime  DateTime
-  organizer String
-  size      Size?
+  id                 String   @id @default(uuid(4))
+  name               String   @default("An event at UH Manoa")
+  dateTime           DateTime
+  organizer          String
+  size               Size?
+  potentialAttendees User[]
 }
 
 enum Size {
