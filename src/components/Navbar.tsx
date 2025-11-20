@@ -17,8 +17,10 @@ const NavBar: React.FC = () => {
     <Navbar
       expand="lg"
       className="navbar-dark"
-      style={{ backgroundColor: '#024731',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
+      style={{
+        backgroundColor: '#024731',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      }}
     >
       <Container>
         <Navbar.Brand
@@ -58,10 +60,9 @@ const NavBar: React.FC = () => {
             {currentUser && (
               <Nav.Link
                 id="my-events-nav"
-                // href="/myevents"
-                href="/"
+                href="/myevents"
                 key="myevents"
-                // active={pathName === '/myevents'}
+                active={pathName === '/myevents'}
                 className="text-white mx-2"
                 style={{ fontSize: '1rem', fontWeight: '400' }}
               >
@@ -86,26 +87,22 @@ const NavBar: React.FC = () => {
               <NavDropdown id="login-dropdown" title={currentUser} className="text-white">
                 <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
                   <BoxArrowRight />
-                  {' '}
-Sign Out
+                   Sign Out
                 </NavDropdown.Item>
                 <NavDropdown.Item id="login-dropdown-change-password" href="/auth/change-password">
                   <Lock />
-                  {' '}
-Change Password
+                   Change Password
                 </NavDropdown.Item>
               </NavDropdown>
             ) : (
               <NavDropdown id="login-dropdown" title="Login" className="text-white">
                 <NavDropdown.Item id="login-dropdown-sign-in" href="/auth/signin">
                   <PersonFill />
-                  {' '}
-Sign in
+                   Sign in
                 </NavDropdown.Item>
                 <NavDropdown.Item id="login-dropdown-sign-up" href="/auth/signup">
                   <PersonPlusFill />
-                  {' '}
-Sign up
+                   Sign up
                 </NavDropdown.Item>
               </NavDropdown>
             )}
