@@ -92,12 +92,12 @@ const LandingPage: React.FC = () => (
                 <div className="mb-2">
                   <Badge
                     className="me-1"
-                    style={{ backgroundColor: 'rgb(42, 78, 223)', color: 'white' }}
+                    style={{ backgroundColor: 'rgb(42, 78, 223) !important', color: 'white' }}
                   >
                     Recreation
                   </Badge>
                   <Badge
-                    style={{ backgroundColor: 'rgb(255, 99, 71)', color: 'white' }}
+                    style={{ backgroundColor: 'rgb(255, 99, 71) !important', color: 'white' }}
                   >
                     Food
                   </Badge>
@@ -129,12 +129,12 @@ const LandingPage: React.FC = () => (
                 <div className="mb-2">
                   <Badge
                     className="me-1"
-                    style={{ backgroundColor: 'rgb(0, 166, 0)', color: 'white' }}
+                    style={{ backgroundColor: 'rgb(0, 166, 0) !important', color: 'white' }}
                   >
                     Career
                   </Badge>
                   <Badge
-                    style={{ backgroundColor: 'rgb(154, 174, 172)', color: 'white' }}
+                    style={{ backgroundColor: 'rgb(154, 174, 172) !important', color: 'white' }}
                   >
                     RSVP
                   </Badge>
@@ -166,12 +166,12 @@ const LandingPage: React.FC = () => (
                 <div className="mb-2">
                   <Badge
                     className="me-1"
-                    style={{ backgroundColor: 'rgb(255, 165, 0)', color: 'white' }}
+                    style={{ backgroundColor: 'rgb(255, 165, 0) !important', color: 'white' }}
                   >
                     Cultural
                   </Badge>
                   <Badge
-                    style={{ backgroundColor: 'rgb(0, 239, 255)', color: 'black' }}
+                    style={{ backgroundColor: 'rgb(0, 239, 255) !important', color: 'white' }}
                   >
                     Free
                   </Badge>
