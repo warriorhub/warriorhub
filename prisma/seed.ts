@@ -1,4 +1,4 @@
-import { PrismaClient, Role, Condition } from '@prisma/client';
+import { PrismaClient, Role, Condition, EventSize } from '@prisma/client';
 import { hash } from 'bcrypt';
 import * as config from '../config/settings.development.json';
 
@@ -33,6 +33,24 @@ async function main() {
         quantity: data.quantity,
         owner: data.owner,
         condition,
+      },
+    });
+  }
+  for (const event of config.defaultEvents) {
+    const eventSize = event.eventSize as EventSize || null;
+    console.log(`  Adding event: ${JSON.stringify(event)}`);
+    // eslint-disable-next-line no-await-in-loop
+    await prisma.event.upsert({
+      where: { id: event.id },
+      update: {},
+      create: {
+        id: event.id,
+        name: event.name,
+        description: event.description,
+        dateTime: event.dateTime,
+        organizer: event.organizer,
+        location: event.location,
+        eventSize,
       },
     });
   }

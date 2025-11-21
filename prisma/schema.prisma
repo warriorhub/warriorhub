@@ -19,14 +19,33 @@ datasource db {
 
 enum Role {
   USER
+  ORGANIZER
   ADMIN
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
-  role     Role   @default(USER)
+  id               Int     @id @default(autoincrement())
+  email            String  @unique
+  password         String
+  role             Role    @default(USER)
+  interestedEvents Event[]
+}
+
+model Event {
+  id                 String     @id @default(uuid(4)) @db.Uuid
+  name               String     @default("An event at UH Manoa")
+  description        String?
+  dateTime           DateTime
+  organizer          String
+  location           String
+  eventSize          EventSize?
+  potentialAttendees User[]
+}
+
+enum EventSize {
+  small
+  medium
+  large
 }
 
 enum Condition {
