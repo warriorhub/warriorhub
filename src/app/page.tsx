@@ -1,13 +1,13 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import LandingPage from '@/components/LandingPage';
-import UserHome from '@/components/UserHome';
 import { Container } from 'react-bootstrap';
 
-/** The Home/Root page */
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   if (status === 'loading') {
     return (
@@ -17,6 +17,10 @@ export default function Home() {
     );
   }
 
-  // Show UserHome if logged in, otherwise show LandingPage
-  return session ? <UserHome /> : <LandingPage />;
+  if (session) {
+    router.push('/UserHome');
+    return null; // stop rendering
+  }
+
+  return <LandingPage />;
 }
