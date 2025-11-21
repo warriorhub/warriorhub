@@ -57,6 +57,16 @@ const NavBar: React.FC = () => {
             >
               Search Events
             </Nav.Link>
+            <Nav.Link
+              id="help-nav"
+              href="/contact"
+              key="contact"
+              active={pathName === '/contact'}
+              className="text-white mx-2"
+              style={{ fontSize: '1rem', fontWeight: '400' }}
+            >
+              Help
+            </Nav.Link>
             {currentUser && (
               <Nav.Link
                 id="my-events-nav"
