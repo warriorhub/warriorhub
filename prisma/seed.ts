@@ -37,7 +37,7 @@ async function main() {
     });
   }
   for (const event of config.defaultEvents) {
-    const size = event.eventSize as EventSize || null;
+    const eventSize = event.eventSize as EventSize || null;
     console.log(`  Adding event: ${JSON.stringify(event)}`);
     // eslint-disable-next-line no-await-in-loop
     await prisma.event.upsert({
@@ -50,7 +50,7 @@ async function main() {
         dateTime: event.dateTime,
         organizer: event.organizer,
         location: event.location,
-        size,
+        eventSize,
       },
     });
   }
