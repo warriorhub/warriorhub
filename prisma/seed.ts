@@ -46,6 +46,7 @@ async function main() {
       create: {
         id: event.id,
         name: event.name,
+        description: event.description,
         dateTime: event.dateTime,
         organizer: event.organizer,
         location: event.location,

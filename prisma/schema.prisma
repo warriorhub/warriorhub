@@ -34,6 +34,7 @@ model User {
 model Event {
   id                 String   @id @default(uuid(4)) @db.Uuid
   name               String   @default("An event at UH Manoa")
+  description        String?
   dateTime           DateTime
   organizer          String
   location           String
