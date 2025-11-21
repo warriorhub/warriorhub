@@ -14,6 +14,6 @@
 
   "defaultEvents": [
     { "id": "aa4d64c4-f64e-4aed-8457-8e7f3a4bd4ae", "name": "Test event", "description": "A test event",
-      "dateTime": "2325-07-11", "organizer": "Test organizer", "location": "UH Manoa", "eventSize": "small" }
+      "dateTime": "2325-07-11T15:30:00-10:00", "organizer": "Test organizer", "location": "UH Manoa", "eventSize": "small" }
   ]
 }
