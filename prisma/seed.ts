@@ -1,4 +1,4 @@
-import { PrismaClient, Role, Condition, Size } from '@prisma/client';
+import { PrismaClient, Role, Condition, EventSize } from '@prisma/client';
 import { hash } from 'bcrypt';
 import * as config from '../config/settings.development.json';
 
