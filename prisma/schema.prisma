@@ -32,17 +32,17 @@ model User {
 }
 
 model Event {
-  id                 String   @id @default(uuid(4)) @db.Uuid
-  name               String   @default("An event at UH Manoa")
+  id                 String     @id @default(uuid(4)) @db.Uuid
+  name               String     @default("An event at UH Manoa")
   description        String?
   dateTime           DateTime
   organizer          String
   location           String
-  size               Size?
+  eventSize          EventSize?
   potentialAttendees User[]
 }
 
-enum Size {
+enum EventSize {
   small
   medium
   large
