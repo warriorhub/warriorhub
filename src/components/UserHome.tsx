@@ -1,114 +1,113 @@
-"use client";
+'use client';
 
 import Image from "next/image";
-import Link from "next/link";
 
 export default function UserHome() {
-    return (
-        <div className="min-h-screen bg-white p-6">
+  return (
+    <div className="container mt-4">
 
-            {/* NAVBAR */}
-            <header className="flex items-center justify-between bg-green-900 text-white p-4 rounded-xl shadow">
-                <div className="text-3xl font-bold">WarriorHub</div>
+      {/* TOP LINKS */}
+      <div className="d-flex gap-4 mb-2 justify-content-center">
+        <p className="fw-semibold m-0 text-dark">Events this week:</p>
+        <p className="fw-semibold m-0 text-dark">RSVPS:</p>
+        <p className="fw-semibold m-0 text-dark">Favorites:</p>
+      </div>
 
-                <nav className="flex space-x-6 text-lg">
-                    <Link href="/student/home" className="hover:underline">Home</Link>
-                    <Link href="/student/events" className="hover:underline">Events</Link>
-                    <Link href="/student/profile" className="hover:underline">Profile</Link>
-                    <Link href="/student/settings" className="hover:underline">Settings</Link>
-                </nav>
-            </header>
+      {/* FEATURED EVENTS TITLE */}
+      <h2 className="text-center mb-4 mt-2 text-dark">Featured Events</h2>
 
-            {/* GREETING */}
-            <h2 className="text-3xl font-semibold mt-6">Aloha, (Student Name!)</h2>
+      {/* ROW WITH CARDS + FILTER */}
+      <div className="row justify-content-center">
 
-            {/* MAIN GRID */}
-            <div className="grid grid-cols-3 gap-6 mt-10">
+        {/* EVENT CARDS */}
+        <div className="col-md-6 d-flex flex-row gap-4 justify-content-end">
 
-                {/* EVENTS THIS WEEK */}
-                <div>
-                    <h3 className="text-xl font-bold">Events this week:</h3>
+          {/* CARD 1 */}
+          <div className="card" style={{ width: "20rem" }}>
+            <Image
+              src="/hula/image (4).png"
+              width={320}
+              height={200}
+              className="card-img-top"
+              alt="Hula Show"
+            />
+            <div className="card-body">
+              <h5 className="card-title">Hula Show at Manoa Campus</h5>
+              <p className="card-text text-muted">
+                November 20th at 1:00 PM
+              </p>
+              <button className="btn btn-success w-100">RSVP</button>
+            </div>
+          </div>
 
-                    <div className="mt-4 space-y-6">
+          {/* CARD 2 */}
+          <div className="card" style={{ width: "20rem" }}>
+            <Image
+              src="/jobfair/image (2).png"
+              width={320}
+              height={200}
+              className="card-img-top"
+              alt="Job Fair"
+            />
+            <div className="card-body">
+              <h5 className="card-title">Job Fair at Campus Center</h5>
+              <p className="card-text text-muted">
+                December 1st at 3:00 PM
+              </p>
+              <button className="btn btn-success w-100">RSVP</button>
+            </div>
+          </div>
+        </div>
 
-                        <div className="border rounded-2xl shadow p-2 w-64">
-                            <Image
-                                src="/hula/image (4).png"
-                                width={250}
-                                height={150}
-                                alt="Hula Show"
-                                className="rounded-xl"
-                            />
-                            <h4 className="font-semibold mt-2">Hula Show at Manoa Campus</h4>
-                            <p>November 20th at 1:00 PM</p>
+        {/* FILTER PANEL */}
+        <div className="col-md-3 offset-md-1">
+          <div className="card p-4" style={{ maxWidth: "400px" }}>
+            <h5 className="fw-bold">Filter Events</h5>
 
-                            <button className="mt-2 bg-green-800 text-white px-4 py-2 rounded-xl">
-                                RSVP
-                            </button>
-                        </div>
+            <h6 className="mt-3">Event Type</h6>
 
-                        <div className="border rounded-2xl shadow p-2 w-64">
-                            <Image
-                                src="/jobfair/image (2).png"
-                                width={250}
-                                height={150}
-                                alt="Job Fair"
-                                className="rounded-xl"
-                            />
-                            <h4 className="font-semibold mt-2">Job Fair at Campus Center</h4>
-                            <p>December 1st at 3:00 PM</p>
-
-                            <button className="mt-2 bg-green-800 text-white px-4 py-2 rounded-xl">
-                                RSVP
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div>
-                    <h3 className="text-xl font-bold">RSVPS:</h3>
-                    <p className="text-gray-500 mt-2">No RSVPs yet.</p>
-                </div>
-
-                <div>
-                    <h3 className="text-xl font-bold">Favorites:</h3>
-
-                    <div className="mt-4 border p-4 rounded-xl shadow w-64">
-
-                        <h4 className="font-semibold">Event Type</h4>
-                        <div className="flex flex-col mt-2 space-y-1">
-                            <label><input type="checkbox" /> Cultural</label>
-                            <label><input type="checkbox" /> Educational</label>
-                            <label><input type="checkbox" /> Residence Halls</label>
-                            <label><input type="checkbox" /> Social</label>
-                            <label><input type="checkbox" /> Sports</label>
-                            <label><input type="checkbox" /> Wellness</label>
-                        </div>
-
-                        <h4 className="font-semibold mt-4">Date Range</h4>
-                        <input type="date" className="border rounded p-1 w-full"/>
-
-                        <h4 className="font-semibold mt-4">Location</h4>
-                        <input
-                            type="text"
-                            className="border rounded p-1 w-full"
-                            placeholder="Enter location"
-                        />
-                    </div>
-                </div>
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" />
+              <label className="form-check-label">Cultural</label>
             </div>
 
-            {/* FOOTER LOGO */}
-            <footer className="mt-10 flex justify-center">
-                <Image
-                    src="/uh logo/image (3).png"
-                    width={150}
-                    height={150}
-                    alt="UH Logo"
-                />
-            </footer>
-        </div>
-    );
-}
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" />
+              <label className="form-check-label">Educational</label>
+            </div>
 
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" />
+              <label className="form-check-label">Residence Halls</label>
+            </div>
+
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" />
+              <label className="form-check-label">Social</label>
+            </div>
+
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" />
+              <label className="form-check-label">Sports</label>
+            </div>
+
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" />
+              <label className="form-check-label">Wellness</label>
+            </div>
+
+            <h6 className="mt-3">Date Range</h6>
+            <input type="date" className="form-control" />
+
+            <h6 className="mt-3">Location</h6>
+            <input type="text" placeholder="Enter location" className="form-control" />
+          </div>
+        </div>
+
+      </div>
+
+      {/* RSVPS SECTION */}
+      
+    </div>
+  );
+}
