@@ -1,7 +1,8 @@
 {
   "defaultAccounts": [
     { "email": "admin@foo.com", "password": "changeme", "role": "ADMIN" },
-    { "email": "john@foo.com", "password": "changeme" }
+    { "email": "john@foo.com", "password": "changeme" },
+    { "email": "org@foo.com", "password": "changeme", "role": "ORGANIZER" }
   ],
 
   "defaultData": [
@@ -9,5 +10,10 @@
     { "name": "Bicycle", "quantity": 2, "owner": "john@foo.com", "condition": "poor" },
     { "name": "Banana", "quantity": 2, "owner": "admin@foo.com", "condition": "good" },
     { "name": "Boogie Board", "quantity": 2, "owner": "admin@foo.com", "condition": "excellent" }
+  ],
+
+  "defaultEvents": [
+    { "id": "aa4d64c4-f64e-4aed-8457-8e7f3a4bd4ae", "name": "Test event", "description": "A test event",
+      "dateTime": "2325-07-11T15:30:00-10:00", "organizer": "Test organizer", "location": "UH Manoa", "eventSize": "small" }
   ]
 }
