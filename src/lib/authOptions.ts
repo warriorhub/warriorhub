@@ -12,12 +12,17 @@ const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Email and Password',
       credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'john@foo.com' },
+        email: {
+          label: 'Email',
+          type: 'email',
+          placeholder: 'john@foo.com',
+        },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
-
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
@@ -39,16 +44,14 @@ const authOptions: NextAuthOptions = {
     signOut: '/auth/signout',
   },
   callbacks: {
-    session: ({ session, token }) => {
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          id: token.id,
-          randomKey: token.randomKey,
-        },
-      };
-    },
+    session: ({ session, token }) => ({
+      ...session,
+      user: {
+        ...session.user,
+        id: token.id,
+        randomKey: token.randomKey,
+      },
+    }),
     jwt: ({ token, user }) => {
       if (user) {
         const u = user as unknown as any;
@@ -61,7 +64,6 @@ const authOptions: NextAuthOptions = {
       return token;
     },
     redirect: () => {
-      // Always redirect to /UserHome after login
       return '/UserHome';
     },
   },
