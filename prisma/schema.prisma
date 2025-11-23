@@ -31,6 +31,18 @@ model User {
   interestedEvents Event[]
 }
 
+enum Category {
+  Recreation
+  Food
+  Career
+  Free
+  Cultural
+  Academic
+  Social
+  Sports
+  Workshop
+}
+
 model Event {
   id                 String     @id @default(uuid(4)) @db.Uuid
   name               String     @default("An event at UH Manoa")
@@ -40,6 +52,7 @@ model Event {
   location           String
   eventSize          EventSize?
   potentialAttendees User[]
+  categories         Category[] @default([])
 }
 
 enum EventSize {
