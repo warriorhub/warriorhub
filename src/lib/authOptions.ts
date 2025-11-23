@@ -24,18 +24,12 @@ const authOptions: NextAuthOptions = {
           return null;
         }
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+          where: { email: credentials.email },
         });
-        if (!user) {
-          return null;
-        }
+        if (!user) return null;
 
         const isPasswordValid = await compare(credentials.password, user.password);
-        if (!isPasswordValid) {
-          return null;
-        }
+        if (!isPasswordValid) return null;
 
         return {
           id: `${user.id}`,
@@ -48,24 +42,17 @@ const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/signin',
     signOut: '/auth/signout',
-    //   error: '/auth/error',
-    //   verifyRequest: '/auth/verify-request',
-    //   newUser: '/auth/new-user'
   },
   callbacks: {
-    session: ({ session, token }) => {
-      // console.log('Session Callback', { session, token })
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          id: token.id,
-          randomKey: token.randomKey,
-        },
-      };
-    },
+    session: ({ session, token }) => ({
+      ...session,
+      user: {
+        ...session.user,
+        id: token.id,
+        randomKey: token.randomKey,
+      },
+    }),
     jwt: ({ token, user }) => {
-      // console.log('JWT Callback', { token, user })
       if (user) {
         const u = user as unknown as any;
         return {
@@ -75,6 +62,9 @@ const authOptions: NextAuthOptions = {
         };
       }
       return token;
+    },
+    redirect: () => {
+      return '/UserHome';
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
