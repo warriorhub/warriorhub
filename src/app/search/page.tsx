@@ -13,6 +13,7 @@ type DBEvent = {
   organizer: string;
   description: string | null;
   categories: string[];
+  imageUrl: string | null;
 };
 
 type EventForComponent = {
@@ -54,7 +55,7 @@ const SearchEvents = () => {
         organization: e.organizer,
         categories: e.categories,
         description: e.description ?? '', // replace null with empty string
-        image: '/default-event.jpg', // placeholder
+        image: e.imageUrl ?? '/default-event.jpg', // placeholder
       }));
 
       setEvents(mapped);
