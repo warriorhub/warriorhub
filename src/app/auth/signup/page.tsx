@@ -17,7 +17,11 @@ type SignUpForm = {
 /** The sign up page. */
 const SignUp = () => {
   const validationSchema = Yup.object().shape({
-    email: Yup.string().required('Email is required').email('Email is invalid'),
+    email: Yup.string()
+      .required('Email is required')
+      .email('Email is invalid')
+    // Added validation
+      .test('hawaii-edu', 'Must be a @hawaii.edu email', (value) => value?.endsWith('@hawaii.edu')),
     password: Yup.string()
       .required('Password is required')
       .min(6, 'Password must be at least 6 characters')
