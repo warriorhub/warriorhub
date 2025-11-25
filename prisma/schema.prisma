@@ -14,6 +14,7 @@ model User {
   password         String
   role             Role    @default(USER)
   interestedEvents Event[] @relation("EventToUser")
+  createdEvents    Event[] @relation("EventCreator")
 }
 
 model Event {
@@ -21,11 +22,14 @@ model Event {
   name               String     @default("An event at UH Manoa")
   description        String?
   dateTime           DateTime
-  organizer          String
   location           String
   eventSize          EventSize?
   categories         Category[] @default([])
   imageUrl           String     @default("/default-event.jpg")
+  // User who created this event (ORGANIZER or ADMIN)
+  createdBy          User   @relation("EventCreator", fields: [createdById], references: [id])
+  createdById        Int
+  // Users who RSVP'd
   potentialAttendees User[]     @relation("EventToUser")
 }
 
