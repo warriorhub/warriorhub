@@ -38,6 +38,7 @@ async function main() {
   }
   for (const event of config.defaultEvents) {
     const eventSize = event.eventSize as EventSize || null;
+    const categories = event.categories as Category[] || [];
     console.log(`  Adding event: ${JSON.stringify(event)}`);
     // eslint-disable-next-line no-await-in-loop
     await prisma.event.upsert({
@@ -51,6 +52,7 @@ async function main() {
         organizer: event.organizer,
         location: event.location,
         eventSize,
+        categories,
       },
     });
   }
