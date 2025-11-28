@@ -42,9 +42,19 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
           <Col md={6}>
             <h1 className="mb-2">{event.name}</h1>
             <div className="mb-3 text-muted">
-              <div>{dateDisplay} at {timeDisplay}</div>
+              <div>
+                {dateDisplay}
+                {' '}
+                at
+                {' '}
+                {timeDisplay}
+              </div>
               <div>{event.location}</div>
-              <div>Hosted by {event.createdBy?.email ?? 'Unknown organizer'}</div>
+              <div>
+                Hosted by
+                {' '}
+                {event.createdBy?.email ?? 'Unknown organizer'}
+              </div>
             </div>
 
             <div className="mb-3">
