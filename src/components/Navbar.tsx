@@ -58,6 +58,16 @@ const NavBar: React.FC = () => {
               Search Events
             </Nav.Link>
             <Nav.Link
+              id="calendar-nav"
+              href="/calendar"
+              key="calendar"
+              active={pathName === '/calendar'}
+              className="text-white mx-2"
+              style={{ fontSize: '1rem', fontWeight: '400' }}
+            >
+              Calendar
+            </Nav.Link>
+            <Nav.Link
               id="help-nav"
               href="/contact"
               key="contact"

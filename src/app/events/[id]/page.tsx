@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Badge, Col, Container, Row } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
+import BackLink from '@/components/BackLink';
 
 interface EventDetailsPageProps {
   params: { id: string };
@@ -25,7 +26,7 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
     <main>
       <Container className="py-4">
         <div className="mb-3">
-          <a href="/search" className="text-decoration-none">&larr; Back to search</a>
+          <BackLink label="← Back" fallbackHref="/search" />
         </div>
 
         <Row className="align-items-start g-4">
