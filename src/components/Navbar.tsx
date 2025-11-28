@@ -80,6 +80,7 @@ const NavBar: React.FC = () => {
               </Nav.Link>
             )}
             {currentUser && role === 'ADMIN' && (
+              <>
               <Nav.Link
                 id="admin-stuff-nav"
                 href="/admin"
@@ -90,6 +91,17 @@ const NavBar: React.FC = () => {
               >
                 Admin
               </Nav.Link>
+              <Nav.Link
+                id="list-events-nav"
+                href="/admin/list-events"
+                key="list-events"
+                active={pathName === '/admin/list-events'}
+                className="text-white mx-2"
+                style={{ fontSize: '1rem', fontWeight: '400' }}
+              >
+                  List Events
+              </Nav.Link>
+              </>
             )}
           </Nav>
           <Nav>

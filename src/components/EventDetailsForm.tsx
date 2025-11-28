@@ -12,6 +12,17 @@ interface Event {
   organization: string;
   image: string;
 }
+export type EventForComponent = {
+  id: string;
+  title: string;
+  dateTime: string;
+  date: string;
+  location: string;
+  organization: string;
+  categories: string[];
+  description: string;
+  image: string;
+};
 
 interface EventDetailsFormProps {
   show: boolean;

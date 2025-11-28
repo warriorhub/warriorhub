@@ -6,6 +6,7 @@ import EventCard from '../../components/EventCard';
 import EventDetailsForm from '../../components/EventDetailsForm';
 
 type DBEvent = {
+  createdBy: any;
   id: string;
   name: string;
   dateTime: string;
@@ -18,6 +19,7 @@ type DBEvent = {
 
 type EventForComponent = {
   title: string;
+  dateTime: string;
   date: string;
   location: string;
   organization: string;
@@ -26,10 +28,28 @@ type EventForComponent = {
   image: string;
 };
 
+const isSameDate = (date1: string, date2: string) => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getUTCFullYear() === d2.getUTCFullYear()
+    && d1.getUTCMonth() === d2.getUTCMonth()
+    && d1.getUTCDate() === d2.getUTCDate()
+  );
+};
+
 const SearchEvents = () => {
   const [events, setEvents] = useState<EventForComponent[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventForComponent | null>(null);
+
+  const [searchFilters, setSearchFilters] = useState({
+    name: '',
+    organization: '',
+    location: '',
+    date: '',
+    category: '',
+  });
 
   const openModal = (event: EventForComponent) => {
     setSelectedEvent(event);
@@ -38,25 +58,26 @@ const SearchEvents = () => {
 
   const closeModal = () => setShowDetails(false);
 
-  // Category buttons
-  const categoryButtons = ['Recreation', 'Food', 'Career', 'Free', 'Cultural', 'RSVP'];
-
   // Fetch events from DB
   useEffect(() => {
     const fetchEvents = async () => {
       const res = await fetch('/api/events');
       const data: DBEvent[] = await res.json();
 
-      // Map database events to EventForComponent shape
-      const mapped: EventForComponent[] = data.map((e) => ({
-        title: e.name,
-        date: new Date(e.dateTime).toLocaleDateString(),
-        location: e.location,
-        organization: e.organizer,
-        categories: e.categories,
-        description: e.description ?? '', // replace null with empty string
-        image: e.imageUrl ?? '/default-event.jpg', // placeholder
-      }));
+      const mapped: EventForComponent[] = data.map((e) => {
+        const [year, month, day] = e.dateTime.split('T')[0].split('-');
+        return {
+          id: e.id,
+          title: e.name,
+          dateTime: e.dateTime,
+          date: `${month}/${day}/${year}`, // display correct date
+          location: e.location,
+          organization: e.createdBy?.email ?? 'Unknown',
+          categories: e.categories,
+          description: e.description ?? '',
+          image: e.imageUrl ?? '/default-event.jpg',
+        };
+      });
 
       setEvents(mapped);
     };
@@ -64,24 +85,93 @@ const SearchEvents = () => {
     fetchEvents();
   }, []);
 
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSearchFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle category selection
+  const handleCategoryClick = (category: string) => {
+    setSearchFilters((prev) => ({
+      ...prev,
+      category: prev.category === category ? '' : category,
+    }));
+  };
+
+  // Reset all filters
+  const handleReset = () => {
+    setSearchFilters({
+      name: '',
+      organization: '',
+      location: '',
+      date: '',
+      category: '',
+    });
+  };
+
+  // Helper function for button colors (avoids nested ternaries)
+  const getCategoryButtonColor = (category: string, index: number) => {
+    if (searchFilters.category === category) return 'rgb(0,150,136)'; // selected
+    if (index % 2 === 0) return 'rgb(42,78,223)'; // even
+    return 'rgb(255,99,71)'; // odd
+  };
+
+  // Filter events based on search criteria
+  const filteredEvents = events.filter((event) => {
+    const matchesName = event.title.toLowerCase().includes(searchFilters.name.toLowerCase());
+    const matchesOrg = event.organization.toLowerCase().includes(searchFilters.organization.toLowerCase());
+    const matchesLocation = event.location.toLowerCase().includes(searchFilters.location.toLowerCase());
+    const matchesDate = searchFilters.date
+      ? isSameDate(event.dateTime, searchFilters.date)
+      : true;
+    const matchesCategory = searchFilters.category
+      ? event.categories.includes(searchFilters.category)
+      : true;
+
+    return matchesName && matchesOrg && matchesLocation && matchesDate && matchesCategory;
+  });
+
+  const categoryButtons = [
+    'Recreation',
+    'Food',
+    'Career',
+    'Free',
+    'Cultural',
+    'Academic',
+    'Social',
+    'Workshop',
+    'Sports'];
   return (
     <Container id="search-events" fluid className="py-4">
       <Row className="mb-4">
         <h1 className="mb-3">Search Events</h1>
       </Row>
 
-      <Form className="mb-4 p-3 border rounded shadow-sm">
+      <Form className="mb-4 p-3 border rounded shadow-sm" onSubmit={(e) => e.preventDefault()}>
         <Row className="mb-3">
           <Col md={6}>
             <Form.Group>
               <Form.Label>Event Name</Form.Label>
-              <Form.Control type="text" placeholder="Search by event name" />
+              <Form.Control
+                type="text"
+                placeholder="Search by event name"
+                name="name"
+                value={searchFilters.name}
+                onChange={handleInputChange}
+              />
             </Form.Group>
           </Col>
           <Col md={6}>
             <Form.Group>
               <Form.Label>Organization</Form.Label>
-              <Form.Control type="text" placeholder="Search by organization" />
+              <Form.Control
+                type="text"
+                placeholder="Search by organization"
+                name="organization"
+                value={searchFilters.organization}
+                onChange={handleInputChange}
+              />
             </Form.Group>
           </Col>
         </Row>
@@ -90,13 +180,24 @@ const SearchEvents = () => {
           <Col md={6}>
             <Form.Group>
               <Form.Label>Location</Form.Label>
-              <Form.Control type="text" placeholder="Search by location" />
+              <Form.Control
+                type="text"
+                placeholder="Search by location"
+                name="location"
+                value={searchFilters.location}
+                onChange={handleInputChange}
+              />
             </Form.Group>
           </Col>
           <Col md={6}>
             <Form.Group>
               <Form.Label>Date</Form.Label>
-              <Form.Control type="date" />
+              <Form.Control
+                type="date"
+                name="date"
+                value={searchFilters.date}
+                onChange={handleInputChange}
+              />
             </Form.Group>
           </Col>
         </Row>
@@ -106,7 +207,7 @@ const SearchEvents = () => {
             <Button variant="primary" className="me-2">
               Search
             </Button>
-            <Button variant="secondary" className="me-2">
+            <Button variant="secondary" className="me-2" onClick={handleReset}>
               Reset Filters
             </Button>
           </Col>
@@ -119,12 +220,13 @@ const SearchEvents = () => {
           <Button
             key={c}
             style={{
-              backgroundColor: i % 2 === 0 ? 'rgb(42,78,223)' : 'rgb(255,99,71)',
+              backgroundColor: getCategoryButtonColor(c, i),
               color: 'white',
               border: 'none',
             }}
             size="sm"
             className="me-2 rounded-pill mb-2"
+            onClick={() => handleCategoryClick(c)}
           >
             {c}
           </Button>
@@ -132,26 +234,28 @@ const SearchEvents = () => {
       </Col>
 
       <Row className="mt-5 g-4">
-        {events.map((event) => (
-          <Col md={4} key={event.title}>
-            <EventCard
-              title={event.title}
-              date={event.date}
-              location={event.location}
-              organization={event.organization}
-              categories={event.categories}
-              image={event.image}
-              onView={() => openModal(event)}
-            />
+        {filteredEvents.length > 0 ? (
+          filteredEvents.map((event) => (
+            <Col md={4} key={event.title}>
+              <EventCard
+                title={event.title}
+                date={event.date}
+                location={event.location}
+                organization={event.organization}
+                categories={event.categories}
+                image={event.image}
+                onView={() => openModal(event)}
+              />
+            </Col>
+          ))
+        ) : (
+          <Col>
+            <p>No events match your search criteria.</p>
           </Col>
-        ))}
+        )}
       </Row>
 
-      <EventDetailsForm
-        show={showDetails}
-        event={selectedEvent}
-        onClose={closeModal}
-      />
+      <EventDetailsForm show={showDetails} event={selectedEvent} onClose={closeModal} />
     </Container>
   );
 };
