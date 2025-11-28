@@ -121,13 +121,16 @@ export default function CalendarView({ initialDate }: CalendarViewProps) {
     setDate(defaultDate);
   }, [defaultDate]);
 
-  const navigateToDate = useCallback((targetDate: Date) => {
-    const safeDate = new Date(targetDate);
-    safeDate.setDate(1);
-    const year = safeDate.getFullYear();
-    const month = safeDate.getMonth() + 1; // 1-12
-    router.push(`/calendar/${year}/${month}`);
-  }, [router]);
+  const setDateAndUrl = useCallback((nextDate: Date) => {
+    setDate(nextDate);
+    if (typeof window !== 'undefined') {
+      const safeDate = new Date(nextDate);
+      safeDate.setDate(1);
+      const year = safeDate.getFullYear();
+      const month = safeDate.getMonth() + 1; // 1-12
+      window.history.replaceState(null, '', `/calendar/${year}/${month}`);
+    }
+  }, []);
 
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     const eventId = event.resource?.id || event.id;
@@ -179,10 +182,7 @@ export default function CalendarView({ initialDate }: CalendarViewProps) {
           view={view}
           onView={(nextView) => setView(nextView)}
           date={date}
-          onNavigate={(nextDate) => {
-            setDate(nextDate);
-            navigateToDate(nextDate);
-          }}
+          onNavigate={(nextDate) => setDateAndUrl(nextDate)}
           defaultView="month"
           defaultDate={defaultDate}
           popup
