@@ -1,0 +1,126 @@
+'use client';
+
+import { useState } from 'react';
+import { Button, Form, Alert } from 'react-bootstrap';
+
+export type EventForComponent = {
+  id: string; // Add ID for API updates/deletes
+  title: string;
+  dateTime: string;
+  location: string;
+  organization: string;
+  categories: string[];
+  description: string;
+  image: string;
+};
+
+interface EditEventFormProps {
+  event: EventForComponent;
+}
+
+export default function EditEventForm({ event }: EditEventFormProps) {
+  const [form, setForm] = useState({
+    name: event.title,
+    description: event.description,
+    location: event.location,
+    dateTime: event.dateTime,
+    categories: event.categories.join(', '),
+    imageUrl: event.image,
+  });
+
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    await fetch(`/api/events/${event.id}`, { // use ID for PUT request
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name,
+        description: form.description,
+        location: form.location,
+        dateTime: form.dateTime,
+        categories: form.categories.split(',').map(c => c.trim()),
+        imageUrl: form.imageUrl,
+      }),
+    });
+
+    setSuccess(true);
+  };
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      {success && <Alert variant="success">Event updated successfully!</Alert>}
+
+      <Form.Group className="mb-2">
+        <Form.Label>Name</Form.Label>
+        <Form.Control
+          type="text"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Form.Group className="mb-2">
+        <Form.Label>Description</Form.Label>
+        <Form.Control
+          as="textarea"
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Form.Group className="mb-2">
+        <Form.Label>Location</Form.Label>
+        <Form.Control
+          type="text"
+          name="location"
+          value={form.location}
+          onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Form.Group className="mb-2">
+        <Form.Label>Date & Time</Form.Label>
+        <Form.Control
+          type="datetime-local"
+          name="dateTime"
+          value={form.dateTime}
+          onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Form.Group className="mb-2">
+        <Form.Label>Categories (comma separated)</Form.Label>
+        <Form.Control
+          type="text"
+          name="categories"
+          value={form.categories}
+          onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Form.Group className="mb-2">
+        <Form.Label>Image URL</Form.Label>
+        <Form.Control
+          type="text"
+          name="imageUrl"
+          value={form.imageUrl}
+          onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Button type="submit">Save</Button>
+    </Form>
+  );
+}

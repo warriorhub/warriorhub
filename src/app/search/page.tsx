@@ -67,6 +67,7 @@ const SearchEvents = () => {
       const mapped: EventForComponent[] = data.map((e) => {
         const [year, month, day] = e.dateTime.split('T')[0].split('-');
         return {
+          id: e.id,
           title: e.name,
           dateTime: e.dateTime,
           date: `${month}/${day}/${year}`, // display correct date
