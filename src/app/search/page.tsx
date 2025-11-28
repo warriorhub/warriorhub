@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import EventCard from '../../components/EventCard';
 import EventDetailsForm from '../../components/EventDetailsForm';
@@ -18,6 +19,7 @@ type DBEvent = {
 };
 
 type EventForComponent = {
+  id: string;
   title: string;
   dateTime: string;
   date: string;
@@ -39,6 +41,7 @@ const isSameDate = (date1: string, date2: string) => {
 };
 
 const SearchEvents = () => {
+  const router = useRouter();
   const [events, setEvents] = useState<EventForComponent[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventForComponent | null>(null);
@@ -61,25 +64,33 @@ const SearchEvents = () => {
   // Fetch events from DB
   useEffect(() => {
     const fetchEvents = async () => {
-      const res = await fetch('/api/events');
-      const data: DBEvent[] = await res.json();
+      try {
+        const res = await fetch('/api/events');
+        if (!res.ok) throw new Error(`Events request failed: ${res.status}`);
 
-      const mapped: EventForComponent[] = data.map((e) => {
-        const [year, month, day] = e.dateTime.split('T')[0].split('-');
-        return {
-          id: e.id,
-          title: e.name,
-          dateTime: e.dateTime,
-          date: `${month}/${day}/${year}`, // display correct date
-          location: e.location,
-          organization: e.createdBy?.email ?? 'Unknown',
-          categories: e.categories,
-          description: e.description ?? '',
-          image: e.imageUrl ?? '/default-event.jpg',
-        };
-      });
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Invalid events response');
 
-      setEvents(mapped);
+        const mapped: EventForComponent[] = data.map((e: DBEvent) => {
+          const [year, month, day] = e.dateTime.split('T')[0].split('-');
+          return {
+            id: e.id,
+            title: e.name,
+            dateTime: e.dateTime,
+            date: `${month}/${day}/${year}`, // display correct date
+            location: e.location,
+            organization: e.createdBy?.email ?? 'Unknown',
+            categories: e.categories,
+            description: e.description ?? '',
+            image: e.imageUrl ?? '/default-event.jpg',
+          };
+        });
+
+        setEvents(mapped);
+      } catch (error) {
+        console.error('Error loading events:', error);
+        setEvents([]);
+      }
     };
 
     fetchEvents();
@@ -236,7 +247,7 @@ const SearchEvents = () => {
       <Row className="mt-5 g-4">
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
-            <Col md={4} key={event.title}>
+            <Col md={4} key={event.id}>
               <EventCard
                 title={event.title}
                 date={event.date}
@@ -245,6 +256,7 @@ const SearchEvents = () => {
                 categories={event.categories}
                 image={event.image}
                 onView={() => openModal(event)}
+                onVisit={() => router.push(`/events/${event.id}`)}
               />
             </Col>
           ))

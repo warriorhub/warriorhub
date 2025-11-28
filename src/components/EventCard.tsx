@@ -8,6 +8,7 @@ interface EventCardProps {
   categories: string[];
   image: string;
   onView: () => void;
+  onVisit?: () => void;
 }
 
 export default function EventCard({
@@ -18,7 +19,10 @@ export default function EventCard({
   categories,
   image,
   onView,
+  onVisit,
 }: EventCardProps) {
+  const handleVisit = onVisit ?? onView;
+
   return (
     <Card className="mb-3 shadow-sm">
       <Card.Img
@@ -51,12 +55,19 @@ export default function EventCard({
           {organization}
         </Card.Text>
 
-        <div className="mt-3">
+        <div className="mt-3 d-flex gap-2">
           <Button variant="primary" onClick={onView}>
             View Details
+          </Button>
+          <Button variant="primary" onClick={handleVisit}>
+            Visit Page
           </Button>
         </div>
       </Card.Body>
     </Card>
   );
 }
+
+EventCard.defaultProps = {
+  onVisit: undefined,
+};
