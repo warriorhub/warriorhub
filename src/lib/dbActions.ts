@@ -92,3 +92,16 @@ export async function changePassword(credentials: { email: string; password: str
     },
   });
 }
+
+/**
+ * Edits the role of an existing user in the database.
+ * @param credentials, an object with the following properties: email, password.
+ */
+export async function editUser(user: { id: number; email: string; role: 'USER' | 'ORGANIZER' | 'ADMIN' }) {
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      role: user.role,
+    },
+  });
+}

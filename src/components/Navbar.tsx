@@ -39,9 +39,9 @@ const NavBar: React.FC = () => {
           <Nav className="me-auto justify-content-start">
             <Nav.Link
               id="home-nav"
-              href="/"
+              href={role === 'ADMIN' ? '/admin' : '/'}
               key="home"
-              active={pathName === '/'}
+              active={pathName === '/' || (role === 'ADMIN' && pathName === '/admin')}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
             >
@@ -90,17 +90,6 @@ const NavBar: React.FC = () => {
               </Nav.Link>
             )}
             {currentUser && role === 'ADMIN' && (
-              <>
-              <Nav.Link
-                id="admin-stuff-nav"
-                href="/admin"
-                key="admin"
-                active={pathName === '/admin'}
-                className="text-white mx-2"
-                style={{ fontSize: '1rem', fontWeight: '400' }}
-              >
-                Admin
-              </Nav.Link>
               <Nav.Link
                 id="list-events-nav"
                 href="/admin/list-events"
@@ -111,7 +100,6 @@ const NavBar: React.FC = () => {
               >
                   List Events
               </Nav.Link>
-              </>
             )}
           </Nav>
           <Nav>
