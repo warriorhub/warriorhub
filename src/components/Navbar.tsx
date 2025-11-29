@@ -17,6 +17,7 @@ const NavBar: React.FC = () => {
   const getHomeUrl = () => {
     if (!currentUser) return '/';
     if (role === 'ADMIN') return '/admin';
+    if (role === 'ORGANIZER') return '/organizer';
     return '/userhome';
   };
   return (
