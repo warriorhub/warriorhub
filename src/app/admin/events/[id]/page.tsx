@@ -14,17 +14,13 @@ export default function EditEventPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       if (!id) return;
-
       const res = await fetch(`/api/events/${id}`);
-
-      if (!res.ok) {
-        console.error('Failed to fetch event', res.status);
-        return;
-      }
-
       const data = await res.json();
 
-      const mappedEvent: EventForComponent = {
+      // eslint-disable-next-line consistent-return
+      if (!data) return router.push('/admin/list-events'); // fallback
+
+      setEvent({
         id: data.id,
         title: data.name,
         dateTime: data.dateTime,
@@ -33,28 +29,36 @@ export default function EditEventPage() {
         categories: data.categories ?? [],
         description: data.description ?? '',
         image: data.imageUrl ?? '/default-event.jpg',
-      };
-
-      setEvent(mappedEvent);
+      });
     };
 
     fetchEvent();
-  }, [id]);
+  }, [id, router]);
 
   const handleDelete = async () => {
     if (!id) return;
 
     await fetch(`/api/events/${id}`, { method: 'DELETE' });
-
-    // Return to events list
     router.push('/admin/list-events');
   };
 
-  const handleSave = (updatedEvent: EventForComponent) => {
-    // Update UI immediately
+  const handleSave = async (updatedEvent: EventForComponent) => {
     setEvent(updatedEvent);
 
-    // Navigate back to list (forces refresh)
+    // PUT request to API
+    await fetch(`/api/events/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: updatedEvent.title,
+        description: updatedEvent.description,
+        location: updatedEvent.location,
+        dateTime: updatedEvent.dateTime,
+        categories: updatedEvent.categories,
+        imageUrl: updatedEvent.image,
+      }),
+    });
+
     router.push('/admin/list-events');
   };
 
@@ -62,33 +66,20 @@ export default function EditEventPage() {
 
   return (
     <Container className="py-5">
-
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => router.back()}
-        >
+        <Button variant="secondary" onClick={() => router.push('/admin/list-events')}>
           Back
         </Button>
-
         <h1 className="text-center flex-grow-1">Edit Event</h1>
-
         <div style={{ width: '75px' }} />
       </div>
 
       <EditEventForm event={event} onSave={handleSave} />
 
-      <Button
-        variant="danger"
-        className="mt-3"
-        onClick={() => setShowDeleteModal(true)}
-      >
+      <Button variant="danger" className="mt-3" onClick={() => setShowDeleteModal(true)}>
         Delete Event
       </Button>
 
-      {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>
