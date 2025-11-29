@@ -34,6 +34,8 @@ const SignIn = () => {
       // Redirect based on role
       if (session?.user?.randomKey === 'ADMIN') {
         router.push('/admin');
+      } else if (session?.user?.randomKey === 'ORGANIZER') {
+        router.push('/organizer');
       } else {
         router.push('/userhome');
       }
