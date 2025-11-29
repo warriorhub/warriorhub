@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
+import Image from 'next/image';
 
 export type EventForComponent = {
   id: string;
@@ -32,12 +33,20 @@ const validCategories = [
   'Workshop',
 ];
 
+// Convert ISO string to local datetime-local format (YYYY-MM-DDTHH:mm)
+const toDatetimeLocal = (isoString: string) => {
+  const date = new Date(isoString);
+  const offset = date.getTimezoneOffset(); // minutes
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
+};
+
 export default function EditEventForm({ event, onSave }: EditEventFormProps) {
   const [form, setForm] = useState({
     name: event.title,
     description: event.description,
     location: event.location,
-    dateTime: event.dateTime,
+    dateTime: toDatetimeLocal(event.dateTime), // <-- fixes datetime display
     categories: event.categories.join(', '),
     imageUrl: event.image,
   });
@@ -94,6 +103,21 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     <Form onSubmit={handleSubmit}>
       {success && <Alert variant="success">Event updated successfully!</Alert>}
 
+      <Form.Group className="mb-3">
+        {form.imageUrl && (
+        <div className="mb-3 text-center">
+          <Image
+            src={form.imageUrl}
+            alt="Event image preview"
+            width={400}
+            height={200}
+            style={{ objectFit: 'cover' }}
+            className="rounded shadow-sm"
+          />
+        </div>
+        )}
+      </Form.Group>
+
       <Form.Group className="mb-2">
         <Form.Label>Name</Form.Label>
         <Form.Control type="text" name="name" value={form.name} onChange={handleChange} />
@@ -123,7 +147,6 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
           {validCategories.join(', ')}
         </Form.Text>
       </Form.Group>
-
       <Form.Group className="mb-2">
         <Form.Label>Image URL</Form.Label>
         <Form.Control type="text" name="imageUrl" value={form.imageUrl} onChange={handleChange} />
