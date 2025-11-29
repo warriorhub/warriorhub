@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { Button, Container, Modal } from 'react-bootstrap';
 import EditEventForm, { EventForComponent } from '@/components/EditEventForm';
-import { Modal, Button } from 'react-bootstrap';
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -14,7 +14,14 @@ export default function EditEventPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       if (!id) return;
+
       const res = await fetch(`/api/events/${id}`);
+
+      if (!res.ok) {
+        console.error('Failed to fetch event', res.status);
+        return;
+      }
+
       const data = await res.json();
 
       const mappedEvent: EventForComponent = {
@@ -38,25 +45,48 @@ export default function EditEventPage() {
     if (!id) return;
 
     await fetch(`/api/events/${id}`, { method: 'DELETE' });
-    router.push('/admin/events');
+
+    // Return to events list
+    router.push('/admin/events?refresh=1');
   };
 
-  if (!event) return <p>Loading...</p>;
+  const handleSave = (updatedEvent: EventForComponent) => {
+    // Update UI immediately
+    setEvent(updatedEvent);
+
+    // Navigate back to list (forces refresh)
+    router.push('/admin/list-events?refresh=1');
+  };
+
+  if (!event) return <p className="text-center mt-5">Loading...</p>;
 
   return (
-    <div className="py-3">
-      <h1 className="text-center mb-4">Edit Event</h1>
+    <Container className="py-5">
 
-      <EditEventForm event={event} />
-
-      <div className="d-flex justify-content-center mt-4">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <Button
-          variant="danger"
-          onClick={() => setShowDeleteModal(true)}
+          type="button"
+          variant="secondary"
+          onClick={() => router.back()}
         >
-          Delete Event
+          Back
         </Button>
+
+        <h1 className="text-center flex-grow-1">Edit Event</h1>
+
+        <div style={{ width: '75px' }} />
       </div>
+
+      <EditEventForm event={event} onSave={handleSave} />
+
+      <Button
+        variant="danger"
+        className="mt-3"
+        onClick={() => setShowDeleteModal(true)}
+      >
+        Delete Event
+      </Button>
 
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
@@ -81,6 +111,6 @@ export default function EditEventPage() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 }
