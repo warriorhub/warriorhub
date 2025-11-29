@@ -1,10 +1,13 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
 
 /** The sign in page. */
 const SignIn = () => {
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const target = e.target as typeof e.target & {
@@ -13,14 +16,27 @@ const SignIn = () => {
     };
     const email = target.email.value;
     const password = target.password.value;
+
+    // Use redirect: false to handle redirect manually
     const result = await signIn('credentials', {
-      callbackUrl: '/list',
+      redirect: false,
       email,
       password,
     });
 
     if (result?.error) {
       console.error('Sign in failed: ', result.error);
+    } else {
+      // Get the session to check role
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+
+      // Redirect based on role
+      if (session?.user?.randomKey === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/userhome');
+      }
     }
   };
 
