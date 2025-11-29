@@ -1,26 +1,29 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
-import { Card, Col, Container, Button, Form, Row } from 'react-bootstrap';
-import { createUser } from '@/lib/dbActions';
+import { Card, Col, Container, Button, Form, Row, Alert } from 'react-bootstrap';
+import { signUp } from '@/lib/dbActions';
 
 type SignUpForm = {
   email: string;
   password: string;
   confirmPassword: string;
-  // acceptTerms: boolean;
 };
 
 /** The sign up page. */
 const SignUp = () => {
+  const router = useRouter();
+  const [error, setError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const validationSchema = Yup.object().shape({
     email: Yup.string()
       .required('Email is required')
       .email('Email is invalid')
-    // Added validation
       .test('hawaii-edu', 'Must be a @hawaii.edu email', (value) => value?.endsWith('@hawaii.edu')),
     password: Yup.string()
       .required('Password is required')
@@ -41,10 +44,29 @@ const SignUp = () => {
   });
 
   const onSubmit = async (data: SignUpForm) => {
-    // console.log(JSON.stringify(data, null, 2));
-    await createUser(data);
-    // After creating, signIn with redirect to the add page
-    await signIn('credentials', { callbackUrl: '/add', ...data });
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      // Call server action with validation
+      const result = await signUp({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (result.success) {
+        // Redirect to sign-in page on success
+        router.push('/auth/signin');
+      } else {
+        // Show error message from server
+        setError(result.error || 'Sign up failed');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Sign up error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,6 +77,11 @@ const SignUp = () => {
             <h1 className="text-center">Sign Up</h1>
             <Card>
               <Card.Body>
+                {error && (
+                  <Alert variant="danger" dismissible onClose={() => setError('')}>
+                    {error}
+                  </Alert>
+                )}
                 <Form onSubmit={handleSubmit(onSubmit)}>
                   <Form.Group className="form-group">
                     <Form.Label>Email</Form.Label>
@@ -62,16 +89,19 @@ const SignUp = () => {
                       type="text"
                       {...register('email')}
                       className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                      placeholder="username@hawaii.edu"
+                      disabled={isSubmitting}
                     />
                     <div className="invalid-feedback">{errors.email?.message}</div>
                   </Form.Group>
-
                   <Form.Group className="form-group">
                     <Form.Label>Password</Form.Label>
                     <input
                       type="password"
                       {...register('password')}
                       className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                      placeholder="Minimum 6 characters"
+                      disabled={isSubmitting}
                     />
                     <div className="invalid-feedback">{errors.password?.message}</div>
                   </Form.Group>
@@ -81,18 +111,25 @@ const SignUp = () => {
                       type="password"
                       {...register('confirmPassword')}
                       className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
+                      placeholder="Re-enter password"
+                      disabled={isSubmitting}
                     />
                     <div className="invalid-feedback">{errors.confirmPassword?.message}</div>
                   </Form.Group>
                   <Form.Group className="form-group py-3">
                     <Row>
                       <Col>
-                        <Button type="submit" className="btn btn-primary">
-                          Register
+                        <Button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                          {isSubmitting ? 'Creating Account...' : 'Register'}
                         </Button>
                       </Col>
                       <Col>
-                        <Button type="button" onClick={() => reset()} className="btn btn-warning float-right">
+                        <Button
+                          type="button"
+                          onClick={() => reset()}
+                          className="btn btn-warning float-right"
+                          disabled={isSubmitting}
+                        >
                           Reset
                         </Button>
                       </Col>
@@ -102,6 +139,7 @@ const SignUp = () => {
               </Card.Body>
               <Card.Footer>
                 Already have an account?
+                {' '}
                 <a href="/auth/signin">Sign in</a>
               </Card.Footer>
             </Card>
