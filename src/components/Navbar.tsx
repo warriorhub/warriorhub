@@ -13,6 +13,12 @@ const NavBar: React.FC = () => {
   const userWithRole = session?.user as { email: string; randomKey: string };
   const role = userWithRole?.randomKey;
   const pathName = usePathname();
+  // Helper function to determine home page URL based on role
+  const getHomeUrl = () => {
+    if (!currentUser) return '/';
+    if (role === 'ADMIN') return '/admin';
+    return '/userhome';
+  };
   return (
     <Navbar
       expand="lg"
@@ -39,9 +45,9 @@ const NavBar: React.FC = () => {
           <Nav className="me-auto justify-content-start">
             <Nav.Link
               id="home-nav"
-              href={role === 'ADMIN' ? '/admin' : '/'}
+              href={getHomeUrl()}
               key="home"
-              active={pathName === '/' || (role === 'ADMIN' && pathName === '/admin')}
+              active={pathName === '/' || pathName === '/userhome' || (role === 'ADMIN' && pathName === '/admin')}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
             >
