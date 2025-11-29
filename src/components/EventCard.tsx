@@ -56,9 +56,9 @@ export default function EventCard({
         </Card.Text>
 
         <div className="mt-3 d-flex gap-2">
-          <Button variant="primary" onClick={onView}>
+          {/* <Button variant="primary" onClick={onView}>
             View Details
-          </Button>
+          </Button> */}
           <Button variant="primary" onClick={handleVisit}>
             Visit Page
           </Button>
