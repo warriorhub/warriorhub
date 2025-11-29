@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { Button, Container, Modal } from 'react-bootstrap';
 import EditEventForm, { EventForComponent } from '@/components/EditEventForm';
-import { Modal, Button } from 'react-bootstrap';
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -17,7 +17,10 @@ export default function EditEventPage() {
       const res = await fetch(`/api/events/${id}`);
       const data = await res.json();
 
-      const mappedEvent: EventForComponent = {
+      // eslint-disable-next-line consistent-return
+      if (!data) return router.push('/admin/list-events'); // fallback
+
+      setEvent({
         id: data.id,
         title: data.name,
         dateTime: data.dateTime,
@@ -26,39 +29,57 @@ export default function EditEventPage() {
         categories: data.categories ?? [],
         description: data.description ?? '',
         image: data.imageUrl ?? '/default-event.jpg',
-      };
-
-      setEvent(mappedEvent);
+      });
     };
 
     fetchEvent();
-  }, [id]);
+  }, [id, router]);
 
   const handleDelete = async () => {
     if (!id) return;
 
     await fetch(`/api/events/${id}`, { method: 'DELETE' });
-    router.push('/admin/events');
+    router.push('/admin/list-events');
   };
 
-  if (!event) return <p>Loading...</p>;
+  const handleSave = async (updatedEvent: EventForComponent) => {
+    setEvent(updatedEvent);
+
+    // PUT request to API
+    await fetch(`/api/events/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: updatedEvent.title,
+        description: updatedEvent.description,
+        location: updatedEvent.location,
+        dateTime: updatedEvent.dateTime,
+        categories: updatedEvent.categories,
+        imageUrl: updatedEvent.image,
+      }),
+    });
+
+    router.push('/admin/list-events');
+  };
+
+  if (!event) return <p className="text-center mt-5">Loading...</p>;
 
   return (
-    <div className="py-3">
-      <h1 className="text-center mb-4">Edit Event</h1>
-
-      <EditEventForm event={event} />
-
-      <div className="d-flex justify-content-center mt-4">
-        <Button
-          variant="danger"
-          onClick={() => setShowDeleteModal(true)}
-        >
-          Delete Event
+    <Container className="py-5">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <Button variant="secondary" onClick={() => router.push('/admin/list-events')}>
+          Back
         </Button>
+        <h1 className="text-center flex-grow-1">Edit Event</h1>
+        <div style={{ width: '75px' }} />
       </div>
 
-      {/* Delete Confirmation Modal */}
+      <EditEventForm event={event} onSave={handleSave} />
+
+      <Button variant="danger" className="mt-3" onClick={() => setShowDeleteModal(true)}>
+        Delete Event
+      </Button>
+
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>
@@ -81,6 +102,6 @@ export default function EditEventPage() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 }

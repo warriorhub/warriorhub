@@ -24,15 +24,35 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const eventId = params.id;
   const body = await req.json();
 
+  const validCategories = [
+    'Recreation',
+    'Food',
+    'Career',
+    'Free',
+    'Cultural',
+    'Academic',
+    'Social',
+    'Sports',
+    'Workshop',
+  ];
+  const categoriesCleaned = Array.isArray(body.categories)
+    ? body.categories.filter((c: string) => validCategories.includes(c))
+    : [];
+
+  const cleanedDate = new Date(body.dateTime);
+  if (Number.isNaN(cleanedDate.getTime())) {
+    return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
+  }
+
   const updated = await prisma.event.update({
     where: { id: eventId },
     data: {
       name: body.name,
-      description: body.description,
+      description: body.description ?? '',
       location: body.location,
-      dateTime: new Date(body.dateTime),
-      categories: body.categories,
-      imageUrl: body.imageUrl,
+      dateTime: cleanedDate.toISOString(),
+      categories: categoriesCleaned,
+      imageUrl: body.imageUrl || null,
     },
   });
 
