@@ -44,16 +44,19 @@ export default function EditEventPage() {
   if (!event) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h1>Edit Event</h1>
+    <div className="py-3">
+      <h1 className="text-center mb-4">Edit Event</h1>
+
       <EditEventForm event={event} />
-      <Button
-        variant="danger"
-        style={{ marginTop: '1rem' }}
-        onClick={() => setShowDeleteModal(true)}
-      >
-        Delete Event
-      </Button>
+
+      <div className="d-flex justify-content-center mt-4">
+        <Button
+          variant="danger"
+          onClick={() => setShowDeleteModal(true)}
+        >
+          Delete Event
+        </Button>
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
