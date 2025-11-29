@@ -1,66 +1,66 @@
 'use server';
 
-import { Stuff, Condition } from '@prisma/client';
 import { hash } from 'bcrypt';
-import { redirect } from 'next/navigation';
 import { prisma } from './prisma';
 
 /**
- * Adds a new stuff to the database.
- * @param stuff, an object with the following properties: name, quantity, owner, condition.
+ * Creates a new user with server-side validation.
+ * @param credentials - Object with email and password
+ * @returns Object with success status and optional error message
  */
-export async function addStuff(stuff: { name: string; quantity: number; owner: string; condition: string }) {
-  // console.log(`addStuff data: ${JSON.stringify(stuff, null, 2)}`);
-  let condition: Condition = 'good';
-  if (stuff.condition === 'poor') {
-    condition = 'poor';
-  } else if (stuff.condition === 'excellent') {
-    condition = 'excellent';
-  } else {
-    condition = 'fair';
+export async function signUp(credentials: { email: string; password: string }) {
+  try {
+    // Server-side validation: Check email ends with @hawaii.edu
+    if (!credentials.email.endsWith('@hawaii.edu')) {
+      return {
+        success: false,
+        error: 'Email must end with @hawaii.edu',
+      };
+    }
+
+    // Server-side validation: Check password length
+    if (credentials.password.length < 6) {
+      return {
+        success: false,
+        error: 'Password must be at least 6 characters',
+      };
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: credentials.email },
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: 'An account with this email already exists',
+      };
+    }
+
+    // Hash password
+    const hashedPassword = await hash(credentials.password, 10);
+
+    // Create user
+    await prisma.user.create({
+      data: {
+        email: credentials.email,
+        password: hashedPassword,
+        role: 'USER', // Default role
+      },
+    });
+
+    // Success!
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error('Sign up error:', error);
+    return {
+      success: false,
+      error: 'An error occurred during sign up. Please try again.',
+    };
   }
-  await prisma.stuff.create({
-    data: {
-      name: stuff.name,
-      quantity: stuff.quantity,
-      owner: stuff.owner,
-      condition,
-    },
-  });
-  // After adding, redirect to the list page
-  redirect('/list');
-}
-
-/**
- * Edits an existing stuff in the database.
- * @param stuff, an object with the following properties: id, name, quantity, owner, condition.
- */
-export async function editStuff(stuff: Stuff) {
-  // console.log(`editStuff data: ${JSON.stringify(stuff, null, 2)}`);
-  await prisma.stuff.update({
-    where: { id: stuff.id },
-    data: {
-      name: stuff.name,
-      quantity: stuff.quantity,
-      owner: stuff.owner,
-      condition: stuff.condition,
-    },
-  });
-  // After updating, redirect to the list page
-  redirect('/list');
-}
-
-/**
- * Deletes an existing stuff from the database.
- * @param id, the id of the stuff to delete.
- */
-export async function deleteStuff(id: number) {
-  // console.log(`deleteStuff id: ${id}`);
-  await prisma.stuff.delete({
-    where: { id },
-  });
-  // After deleting, redirect to the list page
-  redirect('/list');
 }
 
 /**
@@ -68,7 +68,7 @@ export async function deleteStuff(id: number) {
  * @param credentials, an object with the following properties: email, password.
  */
 export async function createUser(credentials: { email: string; password: string }) {
-  // console.log(`createUser data: ${JSON.stringify(credentials, null, 2)}`);
+  // console.log`createUser data: ${JSON.stringify(credentials, null, 2)}`);
   const password = await hash(credentials.password, 10);
   await prisma.user.create({
     data: {
@@ -83,7 +83,7 @@ export async function createUser(credentials: { email: string; password: string 
  * @param credentials, an object with the following properties: email, password.
  */
 export async function changePassword(credentials: { email: string; password: string }) {
-  // console.log(`changePassword data: ${JSON.stringify(credentials, null, 2)}`);
+  // console.log`changePassword data: ${JSON.stringify(credentials, null, 2)}`);
   const password = await hash(credentials.password, 10);
   await prisma.user.update({
     where: { email: credentials.email },

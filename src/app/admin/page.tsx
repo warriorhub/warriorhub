@@ -20,7 +20,7 @@ const AdminPage = async () => {
       <Container id="list" fluid className="py-3">
         <Row>
           <Col>
-            <h1>List Users Admin</h1>
+            <h1>Account List</h1>
             <Table striped bordered hover>
               <thead>
                 <tr>
