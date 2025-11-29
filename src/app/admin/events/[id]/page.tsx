@@ -47,7 +47,7 @@ export default function EditEventPage() {
     await fetch(`/api/events/${id}`, { method: 'DELETE' });
 
     // Return to events list
-    router.push('/admin/events?refresh=1');
+    router.push('/admin/list-events');
   };
 
   const handleSave = (updatedEvent: EventForComponent) => {
@@ -55,7 +55,7 @@ export default function EditEventPage() {
     setEvent(updatedEvent);
 
     // Navigate back to list (forces refresh)
-    router.push('/admin/list-events?refresh=1');
+    router.push('/admin/list-events');
   };
 
   if (!event) return <p className="text-center mt-5">Loading...</p>;
