@@ -22,7 +22,15 @@ export default function EventCard({
   onVisit,
 }: EventCardProps) {
   const handleVisit = onVisit ?? onView;
-  const isLikelyImage = /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(image || '');
+  const isLikelyImage = (() => {
+    try {
+      const parsed = new URL(image);
+      const pathname = parsed.pathname.toLowerCase();
+      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(pathname);
+    } catch {
+      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(image || '');
+    }
+  })();
   const displayImage = isLikelyImage ? image : '/default-event.jpg';
 
   return (

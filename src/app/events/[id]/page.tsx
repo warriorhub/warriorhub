@@ -20,8 +20,18 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
   const date = new Date(event.dateTime);
   const dateDisplay = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const timeDisplay = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const isLikelyImage = /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(event.imageUrl || '');
-  const displayImage = isLikelyImage ? event.imageUrl ?? '/default-event.jpg' : '/default-event.jpg';
+  const displayImage = (() => {
+    try {
+      const parsed = new URL(event.imageUrl || '');
+      const pathname = parsed.pathname.toLowerCase();
+      if (/\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(pathname)) {
+        return event.imageUrl || '/default-event.jpg';
+      }
+      return '/default-event.jpg';
+    } catch {
+      return '/default-event.jpg';
+    }
+  })();
 
   return (
     <main>
