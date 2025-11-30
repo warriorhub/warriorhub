@@ -29,7 +29,7 @@ type EventTableRow = {
   endTime: string;
 };
 
-// StatusIcon component moved outside to avoid defining during render
+// StatusIcon component
 const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
   if (eventStatus === 'attending' || eventStatus === 'attended') {
     return <Check size={24} className="text-success" />;
@@ -39,7 +39,7 @@ const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
 
 export default function MyEventsPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<EventTableRow[]>([]);
@@ -47,7 +47,10 @@ export default function MyEventsPage() {
   const now = useMemo(() => new Date(), []);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Fetch events
   useEffect(() => {
+    if (status !== 'authenticated') return;
+
     const fetchEvents = async () => {
       try {
         const res = await fetch('/api/events', { credentials: 'include' });
@@ -82,7 +85,16 @@ export default function MyEventsPage() {
           };
         });
 
-        setEvents(mapped);
+        // Filter events for admins and organizers: only show their own events
+        const userEmail = session?.user?.email;
+        const filteredByOwner = mapped.filter((e) => {
+          if (!userEmail) return false;
+          const role = session?.user?.randomKey; // 'ADMIN' | 'ORGANIZER' | 'USER'
+          if (role === 'USER') return false; // users should not see this page?
+          return e.organizer === userEmail;
+        });
+
+        setEvents(filteredByOwner);
         setError('');
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to load events';
@@ -91,10 +103,15 @@ export default function MyEventsPage() {
       }
     };
 
-    if (status === 'authenticated') {
-      fetchEvents();
+    fetchEvents();
+  }, [status, session]);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
     }
-  }, [status]);
+  }, [status, router]);
 
   if (status === 'loading') {
     return (
@@ -105,15 +122,7 @@ export default function MyEventsPage() {
   }
 
   if (status === 'unauthenticated') {
-    return (
-      <Container className="py-5 text-center">
-        <h2 className="mb-3">Sign in required</h2>
-        <p className="text-muted mb-4">You need to sign in to view My Events.</p>
-        <Button variant="primary" onClick={() => router.push('/auth/signin?callbackUrl=/myevents')}>
-          Go to Sign In
-        </Button>
-      </Container>
-    );
+    return null; // redirect will happen in useEffect
   }
 
   const currentEvents = events.filter((event) => {
@@ -144,7 +153,6 @@ export default function MyEventsPage() {
     }
   };
 
-  // Filter events based on search
   const filteredEvents = currentEvents.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -176,7 +184,7 @@ export default function MyEventsPage() {
           </Col>
         </Row>
 
-        {/* Tabs and Display Options */}
+        {/* Tabs */}
         <Row className="mb-3 align-items-center">
           <Col>
             <div className="d-flex gap-2">
@@ -203,22 +211,6 @@ export default function MyEventsPage() {
                   <Dropdown.Item>Card View</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
-            </div>
-          </Col>
-          <Col xs="auto">
-            <div className="d-flex gap-2 align-items-center">
-              <Button variant="light" size="sm" style={{ minWidth: '40px' }}>
-                1
-              </Button>
-              <Button variant="outline-primary" size="sm" style={{ minWidth: '40px' }}>
-                2
-              </Button>
-              <Button variant="outline-primary" size="sm" style={{ minWidth: '40px' }}>
-                3
-              </Button>
-              <Button variant="outline-primary" size="sm" style={{ minWidth: '40px' }}>
-                4
-              </Button>
             </div>
           </Col>
         </Row>

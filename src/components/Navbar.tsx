@@ -11,9 +11,22 @@ const NavBar: React.FC = () => {
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
   const isLoading = status === 'loading';
-  const currentUser = isAuthenticated ? session?.user?.email : undefined;
-  const userWithRole = isAuthenticated ? (session?.user as { email: string; randomKey: string }) : null;
-  const role = userWithRole?.randomKey;
+  const userWithRole = isAuthenticated && session?.user
+  ? {
+      email: session.user.email || 'unknown@example.com',
+      role:
+        // eslint-disable-next-line no-nested-ternary
+        session.user.randomKey === 'ADMIN'
+          ? 'ADMIN'
+          : session.user.randomKey === 'ORGANIZER'
+          ? 'ORGANIZER'
+          : 'USER',
+    }
+  : null;
+
+const role = userWithRole?.role;
+const currentUser = userWithRole?.email;
+
   const pathName = usePathname();
   if (status === 'loading') return null;
   // Helper function to determine home page URL based on role
@@ -99,18 +112,18 @@ const NavBar: React.FC = () => {
                 My Events
               </Nav.Link>
             )}
-            {currentUser && role === 'ADMIN' && (
-              <Nav.Link
-                id="list-events-nav"
-                href="/admin/list-events"
-                key="list-events"
-                active={pathName === '/admin/list-events'}
-                className="text-white mx-2"
-                style={{ fontSize: '1rem', fontWeight: '400' }}
-              >
-                  List Events
-              </Nav.Link>
-            )}
+{currentUser && role === 'ADMIN' && (
+  <Nav.Link
+    id="list-events-nav"
+    href="/admin/list-events"
+    key="list-events"
+    active={pathName === '/admin/list-events'}
+    className="text-white mx-2"
+    style={{ fontSize: '1rem', fontWeight: '400' }}
+  >
+    List Events
+  </Nav.Link>
+)}
           </Nav>
           <Nav>
             {!isLoading && (

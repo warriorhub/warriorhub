@@ -9,8 +9,11 @@ const getAuthContext = async (req: NextRequest) => {
     getToken({ req, secret: process.env.NEXTAUTH_SECRET }),
     getServerSession(authOptions),
   ]);
-  const tokenRole = (token as { randomKey?: string } | null)?.randomKey;
-  const sessionRole = (session?.user as { randomKey?: string } | undefined)?.randomKey;
+
+  // FIXED: use role instead of randomKey
+  const tokenRole = (token as { role?: string } | null)?.role;
+  const sessionRole = (session?.user as { role?: string } | undefined)?.role;
+
   return {
     userId: token?.id ?? session?.user?.id,
     role: tokenRole ?? sessionRole,
@@ -55,6 +58,7 @@ export async function PUT(
 
     const isOwner = String(auth.userId) === String(existing.createdById);
     const isAdmin = auth.role === 'ADMIN';
+
     if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -99,6 +103,7 @@ export async function DELETE(
 ) {
   try {
     const auth = await getAuthContext(req);
+
     if (!auth.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -110,7 +115,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    if (auth.role !== 'ADMIN' && Number(auth.userId) !== existing.createdById) {
+    const isOwner = Number(auth.userId) === existing.createdById;
+    const isAdmin = auth.role === 'ADMIN';
+
+    if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
