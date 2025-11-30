@@ -39,7 +39,7 @@ const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
 
 export default function MyEventsPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<EventTableRow[]>([]);
@@ -48,6 +48,12 @@ export default function MyEventsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
+    if (!session?.user?.id) {
+      setEvents([]);
+      return;
+    }
+
     const fetchEvents = async () => {
       try {
         const res = await fetch('/api/events', { credentials: 'include' });
@@ -55,7 +61,11 @@ export default function MyEventsPage() {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
-        const mapped: EventTableRow[] = data.map((e) => {
+        const owned = data.filter(
+          (e) => String(e.createdById ?? e.createdBy?.id) === String(session.user.id),
+        );
+
+        const mapped: EventTableRow[] = owned.map((e) => {
           const start = new Date(e.dateTime);
           const end = new Date(start.getTime() + 60 * 60 * 1000); // assume 1 hour
           const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -91,10 +101,8 @@ export default function MyEventsPage() {
       }
     };
 
-    if (status === 'authenticated') {
-      fetchEvents();
-    }
-  }, [status]);
+    fetchEvents();
+  }, [status, session?.user?.id]);
 
   if (status === 'loading') {
     return (
