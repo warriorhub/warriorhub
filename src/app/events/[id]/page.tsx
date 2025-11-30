@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Badge, Col, Container, Row } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
@@ -21,6 +20,8 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
   const date = new Date(event.dateTime);
   const dateDisplay = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const timeDisplay = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const isLikelyImage = /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(event.imageUrl || '');
+  const displayImage = isLikelyImage ? event.imageUrl ?? '/default-event.jpg' : '/default-event.jpg';
 
   return (
     <main>
@@ -31,14 +32,31 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
 
         <Row className="align-items-start g-4">
           <Col md={6}>
-            <Image
-              src={event.imageUrl || '/default-event.jpg'}
-              alt={event.name}
-              width={800}
-              height={500}
-              className="rounded shadow-sm"
-              style={{ objectFit: 'cover', width: '100%', height: 'auto' }}
-            />
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                paddingBottom: '56.25%',
+                overflow: 'hidden',
+                borderRadius: '0.5rem',
+                boxShadow: '0 0.5rem 1rem rgba(0,0,0,0.1)',
+                backgroundColor: '#f5f5f5',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayImage}
+                alt={event.name}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
           </Col>
           <Col md={6}>
             <h1 className="mb-2">{event.name}</h1>
