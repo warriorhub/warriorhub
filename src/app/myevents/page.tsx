@@ -15,6 +15,20 @@ import { useEffect, useMemo, useState } from 'react';
 import { FileText, Check, Trash } from 'react-bootstrap-icons';
 import { useSession } from 'next-auth/react';
 
+type EventTableRow = {
+  id: string;
+  status: string;
+  title: string;
+  organizer: string;
+  venue: string;
+  category: string;
+  isRecurring: boolean;
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
+};
+
 // StatusIcon component moved outside to avoid defining during render
 const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
   if (eventStatus === 'attending' || eventStatus === 'attended') {
