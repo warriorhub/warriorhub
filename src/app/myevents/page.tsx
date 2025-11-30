@@ -124,6 +124,23 @@ export default function MyEventsPage() {
     );
   }
 
+  const role = (session?.user as { randomKey?: string } | null)?.randomKey;
+  const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
+
+  if (!isOrganizer) {
+    return (
+      <Container className="py-5 text-center">
+        <h2 className="mb-3">My Events</h2>
+        <p className="text-muted mb-4">
+          Your account is a user account. Only organizers or admins can create or manage events.
+        </p>
+        <Button variant="primary" onClick={() => router.push('/search')}>
+          Browse Events
+        </Button>
+      </Container>
+    );
+  }
+
   const currentEvents = events.filter((event) => {
     const eventDate = new Date(event.startDate);
     const isUpcoming = eventDate >= now;
