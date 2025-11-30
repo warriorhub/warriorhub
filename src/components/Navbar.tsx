@@ -8,14 +8,17 @@ import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { BoxArrowRight, Lock, PersonFill, PersonPlusFill } from 'react-bootstrap-icons';
 
 const NavBar: React.FC = () => {
-  const { data: session } = useSession();
-  const currentUser = session?.user?.email;
-  const userWithRole = session?.user as { email: string; randomKey: string };
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+  const isLoading = status === 'loading';
+  const currentUser = isAuthenticated ? session?.user?.email : undefined;
+  const userWithRole = isAuthenticated ? (session?.user as { email: string; randomKey: string }) : null;
   const role = userWithRole?.randomKey;
   const pathName = usePathname();
+  if (status === 'loading') return null;
   // Helper function to determine home page URL based on role
   const getHomeUrl = () => {
-    if (!currentUser) return '/';
+    if (!isAuthenticated) return '/';
     if (role === 'ADMIN') return '/admin';
     if (role === 'ORGANIZER') return '/organizer';
     return '/userhome';
@@ -84,7 +87,7 @@ const NavBar: React.FC = () => {
             >
               Help
             </Nav.Link>
-            {currentUser && (
+            {isAuthenticated && (
               <Nav.Link
                 id="my-events-nav"
                 href="/myevents"
@@ -110,28 +113,30 @@ const NavBar: React.FC = () => {
             )}
           </Nav>
           <Nav>
-            {session ? (
-              <NavDropdown id="login-dropdown" title={currentUser} className="text-white">
-                <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
-                  <BoxArrowRight />
-                   Sign Out
-                </NavDropdown.Item>
-                <NavDropdown.Item id="login-dropdown-change-password" href="/auth/change-password">
-                  <Lock />
-                   Change Password
-                </NavDropdown.Item>
-              </NavDropdown>
-            ) : (
-              <NavDropdown id="login-dropdown" title="Login" className="text-white">
-                <NavDropdown.Item id="login-dropdown-sign-in" href="/auth/signin">
-                  <PersonFill />
-                   Sign in
-                </NavDropdown.Item>
-                <NavDropdown.Item id="login-dropdown-sign-up" href="/auth/signup">
-                  <PersonPlusFill />
-                   Sign up
-                </NavDropdown.Item>
-              </NavDropdown>
+            {!isLoading && (
+              isAuthenticated ? (
+                <NavDropdown id="login-dropdown" title={currentUser} className="text-white">
+                  <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
+                    <BoxArrowRight />
+                     Sign Out
+                  </NavDropdown.Item>
+                  <NavDropdown.Item id="login-dropdown-change-password" href="/auth/change-password">
+                    <Lock />
+                     Change Password
+                  </NavDropdown.Item>
+                </NavDropdown>
+              ) : (
+                <NavDropdown id="login-dropdown" title="Login" className="text-white">
+                  <NavDropdown.Item id="login-dropdown-sign-in" href="/auth/signin">
+                    <PersonFill />
+                     Sign in
+                  </NavDropdown.Item>
+                  <NavDropdown.Item id="login-dropdown-sign-up" href="/auth/signup">
+                    <PersonPlusFill />
+                     Sign up
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )
             )}
           </Nav>
         </Navbar.Collapse>

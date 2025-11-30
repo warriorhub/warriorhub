@@ -1,10 +1,19 @@
 'use client';
 
-import { Container, Row, Col, Table, Button, Form, Dropdown } from 'react-bootstrap';
-import { useSession } from 'next-auth/react';
+import {
+  Container,
+  Row,
+  Col,
+  Table,
+  Button,
+  Form,
+  Dropdown,
+  Alert,
+} from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { FileText, Check } from 'react-bootstrap-icons';
+import { useEffect, useMemo, useState } from 'react';
+import { FileText, Check, Trash } from 'react-bootstrap-icons';
+import { useSession } from 'next-auth/react';
 
 // StatusIcon component moved outside to avoid defining during render
 const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
@@ -15,16 +24,63 @@ const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
 };
 
 export default function MyEventsPage() {
-  const { status } = useSession();
   const router = useRouter();
+  const { status } = useSession();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
+  const [events, setEvents] = useState<EventTableRow[]>([]);
+  const [error, setError] = useState<string>('');
+  const now = useMemo(() => new Date(), []);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch('/api/events', { credentials: 'include' });
+        if (!res.ok) throw new Error(`Failed to load events (${res.status})`);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Invalid events response');
+
+        const mapped: EventTableRow[] = data.map((e) => {
+          const start = new Date(e.dateTime);
+          const end = new Date(start.getTime() + 60 * 60 * 1000); // assume 1 hour
+          const dateFormatter = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          });
+          const timeFormatter = new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+          });
+          return {
+            id: e.id,
+            status: 'registered',
+            title: e.name,
+            organizer: e.createdBy?.email ?? 'Unknown',
+            venue: e.location,
+            category: e.categories?.[0] ?? '—',
+            isRecurring: false,
+            startDate: dateFormatter.format(start),
+            startTime: timeFormatter.format(start),
+            endDate: dateFormatter.format(end),
+            endTime: timeFormatter.format(end),
+          };
+        });
+
+        setEvents(mapped);
+        setError('');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to load events';
+        setError(message);
+        setEvents([]);
+      }
+    };
+
+    if (status === 'authenticated') {
+      fetchEvents();
     }
-  }, [status, router]);
+  }, [status]);
 
   if (status === 'loading') {
     return (
@@ -34,66 +90,45 @@ export default function MyEventsPage() {
     );
   }
 
-  // Sample data - replace with actual API call
-  const upcomingEvents = [
-    {
-      id: 1,
-      status: 'registered',
-      title: 'Board Game Night',
-      organizer: 'Game Dev Club',
-      venue: 'Hamilton Library',
-      category: 'Recreation',
-      isRecurring: false,
-      startDate: 'November 25, 2025',
-      startTime: '6:00 PM',
-      endDate: 'November 25, 2025',
-      endTime: '9:00 PM',
-    },
-    {
-      id: 2,
-      status: 'attending',
-      title: 'Career Prep Workshop',
-      organizer: 'Career Services',
-      venue: 'Campus Center, Room 301',
-      category: 'Career',
-      isRecurring: false,
-      startDate: 'November 28, 2025',
-      startTime: '2:00 PM',
-      endDate: 'November 28, 2025',
-      endTime: '4:00 PM',
-    },
-    {
-      id: 3,
-      status: 'attending',
-      title: 'Study Session: ICS 314',
-      organizer: 'ICS Department',
-      venue: 'POST 318',
-      category: 'Academic',
-      isRecurring: true,
-      startDate: 'November 30, 2025',
-      startTime: '4:00 PM',
-      endDate: 'November 30, 2025',
-      endTime: '6:00 PM',
-    },
-  ];
+  if (status === 'unauthenticated') {
+    return (
+      <Container className="py-5 text-center">
+        <h2 className="mb-3">Sign in required</h2>
+        <p className="text-muted mb-4">You need to sign in to view My Events.</p>
+        <Button variant="primary" onClick={() => router.push('/auth/signin?callbackUrl=/myevents')}>
+          Go to Sign In
+        </Button>
+      </Container>
+    );
+  }
 
-  const pastEvents = [
-    {
-      id: 4,
-      status: 'attended',
-      title: 'Welcome Week Social',
-      organizer: 'Student Life',
-      venue: 'Campus Center Courtyard',
-      category: 'Social',
-      isRecurring: false,
-      startDate: 'August 15, 2025',
-      startTime: '5:00 PM',
-      endDate: 'August 15, 2025',
-      endTime: '8:00 PM',
-    },
-  ];
+  const currentEvents = events.filter((event) => {
+    const eventDate = new Date(event.startDate);
+    const isUpcoming = eventDate >= now;
+    return activeTab === 'upcoming' ? isUpcoming : !isUpcoming;
+  });
 
-  const currentEvents = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
+  const handleDelete = async (id: string) => {
+    // eslint-disable-next-line no-alert
+    if (!window.confirm('Delete this event?')) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/events/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to delete (${res.status})`);
+      }
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete event';
+      setError(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Filter events based on search
   const filteredEvents = currentEvents.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -111,6 +146,7 @@ export default function MyEventsPage() {
               variant="primary"
               size="lg"
               style={{ backgroundColor: '#0d6efd', fontWeight: '600' }}
+              onClick={() => router.push('/myevents/add')}
             >
               ADD NEW
             </Button>
@@ -173,6 +209,16 @@ export default function MyEventsPage() {
           </Col>
         </Row>
 
+        {error && (
+          <Row className="mb-3">
+            <Col>
+              <Alert variant="danger" className="mb-0">
+                {error}
+              </Alert>
+            </Col>
+          </Row>
+        )}
+
         {/* Events Table */}
         <Row>
           <Col>
@@ -204,9 +250,20 @@ export default function MyEventsPage() {
                               View
                             </a>
                             |
-                            <a href={`/events/${event.id}/edit`} className="text-primary ms-2">
+                            <a href={`/events/${event.id}/edit`} className="text-primary ms-2 me-2">
                               Edit
                             </a>
+                            |
+                            <button
+                              type="button"
+                              className="btn btn-link p-0 ms-2 text-danger"
+                              onClick={() => handleDelete(event.id)}
+                              disabled={deletingId === event.id}
+                            >
+                              <Trash size={16} />
+                              {' '}
+                              {deletingId === event.id ? 'Deleting...' : 'Delete'}
+                            </button>
                           </div>
                         </div>
                       </td>

@@ -1,73 +1,123 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse, type NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { getServerSession } from 'next-auth';
+import { prisma } from '@/lib/prisma';
 import authOptions from '@/lib/authOptions';
-import { adminProtectedPage } from '@/lib/page-protection';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const eventId = params.id;
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-  });
+const getAuthContext = async (req: NextRequest) => {
+  const [token, session] = await Promise.all([
+    getToken({ req, secret: process.env.NEXTAUTH_SECRET }),
+    getServerSession(authOptions),
+  ]);
+  const tokenRole = (token as { randomKey?: string } | null)?.randomKey;
+  const sessionRole = (session?.user as { randomKey?: string } | undefined)?.randomKey;
+  return {
+    userId: token?.id ?? session?.user?.id,
+    role: tokenRole ?? sessionRole,
+  };
+};
 
-  if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
-
-  return NextResponse.json(event);
-}
-
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions);
-  adminProtectedPage(
-    session as { user: { email: string; id: string; randomKey: string } } | null,
-  );
-
-  const eventId = params.id;
-  const body = await req.json();
-
-  const validCategories = [
-    'Recreation',
-    'Food',
-    'Career',
-    'Free',
-    'Cultural',
-    'Academic',
-    'Social',
-    'Sports',
-    'Workshop',
-  ];
-  const categoriesCleaned = Array.isArray(body.categories)
-    ? body.categories.filter((c: string) => validCategories.includes(c))
-    : [];
-
-  const cleanedDate = new Date(body.dateTime);
-  if (Number.isNaN(cleanedDate.getTime())) {
-    return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id: params.id },
+      include: { createdBy: true },
+    });
+    if (!event) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return NextResponse.json({ error: 'Failed to fetch event' }, { status: 500 });
   }
-
-  const updated = await prisma.event.update({
-    where: { id: eventId },
-    data: {
-      name: body.name,
-      description: body.description ?? '',
-      location: body.location,
-      dateTime: cleanedDate.toISOString(),
-      categories: categoriesCleaned,
-      imageUrl: body.imageUrl || null,
-    },
-  });
-
-  return NextResponse.json(updated);
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions);
-  adminProtectedPage(
-    session as { user: { email: string; id: string; randomKey: string } } | null,
-  );
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await getAuthContext(req);
+    if (!auth.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-  const eventId = params.id;
+    const existing = await prisma.event.findUnique({
+      where: { id: params.id },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
-  await prisma.event.delete({ where: { id: eventId } });
+    const isOwner = String(auth.userId) === String(existing.createdById);
+    const isAdmin = auth.role === 'ADMIN';
+    if (!isAdmin && !isOwner) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
-  return NextResponse.json({ message: 'Event deleted' });
+    const body = await req.json();
+    const {
+      name,
+      description,
+      dateTime,
+      location,
+      categories,
+      imageUrl,
+    } = body;
+
+    if (!name || !dateTime || !location) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const updated = await prisma.event.update({
+      where: { id: params.id },
+      data: {
+        name,
+        description: description || null,
+        dateTime: new Date(dateTime),
+        location,
+        categories: categories || [],
+        imageUrl: imageUrl || '/default-event.jpg',
+      },
+      include: { createdBy: true },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await getAuthContext(req);
+    if (!auth.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const existing = await prisma.event.findUnique({
+      where: { id: params.id },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    if (auth.role !== 'ADMIN' && Number(auth.userId) !== existing.createdById) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    await prisma.event.delete({ where: { id: params.id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
+  }
 }

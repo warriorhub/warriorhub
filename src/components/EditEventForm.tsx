@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
 
@@ -16,7 +17,7 @@ export type EventForComponent = {
 
 interface EditEventFormProps {
   event: EventForComponent;
-  onSave: (updatedEvent: EventForComponent) => void;
+  onSave?: (updatedEvent: EventForComponent) => void;
 }
 
 // Valid categories for Prisma enum
@@ -33,6 +34,7 @@ const validCategories = [
 ];
 
 export default function EditEventForm({ event, onSave }: EditEventFormProps) {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: event.title,
     description: event.description,
@@ -42,6 +44,16 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     imageUrl: event.image,
   });
   const [success, setSuccess] = useState(false);
+  const [imageUrlError, setImageUrlError] = useState('');
+
+  const looksLikeImageUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(parsed.pathname);
+    } catch {
+      return false;
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -50,6 +62,13 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setImageUrlError('');
+
+    if (form.imageUrl && !looksLikeImageUrl(form.imageUrl)) {
+      setImageUrlError('Image URL must point to an image (e.g., .jpg, .png, .webp).');
+      return;
+    }
 
     // Clean categories: trim, remove empty, keep only valid enum values
     const categoriesArray = form.categories
@@ -87,7 +106,8 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
       image: updatedData.imageUrl ?? '/default-event.jpg',
     };
 
-    onSave(updatedEvent);
+    if (onSave) onSave(updatedEvent);
+    router.push('/myevents');
   };
 
   return (
@@ -127,9 +147,14 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
       <Form.Group className="mb-2">
         <Form.Label>Image URL</Form.Label>
         <Form.Control type="text" name="imageUrl" value={form.imageUrl} onChange={handleChange} />
+        {imageUrlError && <Form.Text className="text-danger">{imageUrlError}</Form.Text>}
       </Form.Group>
 
       <Button type="submit">Save</Button>
     </Form>
   );
 }
+
+EditEventForm.defaultProps = {
+  onSave: undefined,
+};

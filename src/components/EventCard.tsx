@@ -22,15 +22,24 @@ export default function EventCard({
   onVisit,
 }: EventCardProps) {
   const handleVisit = onVisit ?? onView;
+  const isLikelyImage = /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(image || '');
+  const displayImage = isLikelyImage ? image : '/default-event.jpg';
 
   return (
-    <Card className="mb-3 shadow-sm">
-      <Card.Img
-        variant="top"
-        src={image}
-        alt={title}
+    <Card className="mb-3 shadow-sm h-100">
+      <div
         className="rounded-top"
-        style={{ height: '180px', objectFit: 'cover' }}
+        role="img"
+        aria-label={title}
+        style={{
+          height: '200px',
+          width: '100%',
+          backgroundImage: `url(${displayImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: '#f5f5f5',
+        }}
       />
 
       <Card.Body>
@@ -44,7 +53,7 @@ export default function EventCard({
           </Badge>
         ))}
 
-        <Card.Title className="mt-2">{title}</Card.Title>
+        <Card.Title className="mt-3">{title}</Card.Title>
 
         <Card.Text>
           {date}
