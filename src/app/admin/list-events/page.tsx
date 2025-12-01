@@ -73,31 +73,44 @@ export default function ListEventsPage() {
             </tr>
           </thead>
           <tbody>
-            {events.map(e => (
-              <tr key={e.id}>
-                <td className="fw-semibold">{e.name}</td>
-                <td>{new Date(e.dateTime).toLocaleString()}</td>
-                <td>{e.location}</td>
-                <td>
-                  <div className="d-flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline-primary"
-                      onClick={() => router.push(`/admin/events/${e.id}`)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline-danger"
-                      onClick={() => handleDelete(e.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {events.map(e => {
+              const eventDate = new Date(e.dateTime);
+              const formattedDate = eventDate.toLocaleDateString(undefined, {
+                month: '2-digit',
+                day: '2-digit',
+                year: 'numeric',
+              });
+              const formattedTime = eventDate.toLocaleTimeString(undefined, {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              });
+              return (
+                <tr key={e.id}>
+                  <td className="fw-semibold">{e.name}</td>
+                  <td>{`${formattedDate} ${formattedTime}`}</td>
+                  <td>{e.location}</td>
+                  <td>
+                    <div className="d-flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline-primary"
+                        onClick={() => router.push(`/admin/events/${e.id}`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline-danger"
+                        onClick={() => handleDelete(e.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       )}

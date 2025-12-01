@@ -30,21 +30,21 @@ export async function POST(req: NextRequest) {
       getToken({ req, secret: process.env.NEXTAUTH_SECRET }),
       getServerSession(authOptions),
     ]);
-    const userId = (token as any)?.id ?? (token as any)?.sub ?? (session as any)?.user?.id;
+
+    const userId = (token as any)?.id ?? (session as any)?.user?.id;
+    const role = (token as any)?.role ?? (session as any)?.user?.role;
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // RBAC: Only ORGANIZER or ADMIN can create events
+    if (role !== 'ORGANIZER' && role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await req.json();
-    const {
-      name,
-      description,
-      dateTime,
-      location,
-      categories,
-      imageUrl,
-    } = body;
+    const { name, description, dateTime, location, categories, imageUrl } = body;
 
     if (!name || !dateTime || !location) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -65,9 +65,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error('Error creating event:', error);
-    return NextResponse.json(
-      { error: 'Failed to create event' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
   }
 }
