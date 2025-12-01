@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FileText, Check, Trash } from 'react-bootstrap-icons';
 import { useSession } from 'next-auth/react';
+import EventCard from '@/components/EventCard';
 
 type EventTableRow = {
   id: string;
@@ -27,6 +28,8 @@ type EventTableRow = {
   startTime: string;
   endDate: string;
   endTime: string;
+  categories?: string[];
+  image?: string;
 };
 
 // StatusIcon component
@@ -46,10 +49,17 @@ export default function MyEventsPage() {
   const [error, setError] = useState<string>('');
   const now = useMemo(() => new Date(), []);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [displayMode, setDisplayMode] = useState<'table' | 'card'>('table');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Fetch events
   useEffect(() => {
     if (status !== 'authenticated') return;
+    if (!session?.user?.id) {
+      setEvents([]);
+      return;
+    }
 
     const fetchEvents = async () => {
       try {
@@ -58,7 +68,11 @@ export default function MyEventsPage() {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
-        const mapped: EventTableRow[] = data.map((e) => {
+        const owned = data.filter(
+          (e) => String(e.createdById ?? e.createdBy?.id) === String(session.user.id),
+        );
+
+        const mapped: EventTableRow[] = owned.map((e) => {
           const start = new Date(e.dateTime);
           const end = new Date(start.getTime() + 60 * 60 * 1000); // assume 1 hour
           const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -82,6 +96,8 @@ export default function MyEventsPage() {
             startTime: timeFormatter.format(start),
             endDate: dateFormatter.format(end),
             endTime: timeFormatter.format(end),
+            categories: e.categories ?? [],
+            image: e.imageUrl ?? '/default-event.jpg',
           };
         });
 
@@ -96,6 +112,7 @@ export default function MyEventsPage() {
 
         setEvents(filteredByOwner);
         setError('');
+        setCurrentPage(1);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to load events';
         setError(message);
@@ -104,14 +121,23 @@ export default function MyEventsPage() {
     };
 
     fetchEvents();
-  }, [status, session]);
+  }, [status, session?.user?.id]);
 
-  // Redirect unauthenticated users
+  const currentEvents = events.filter((event) => {
+    const eventDate = new Date(event.startDate);
+    const isUpcoming = eventDate >= now;
+    return activeTab === 'upcoming' ? isUpcoming : !isUpcoming;
+  });
+
+  const filteredEvents = currentEvents.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / itemsPerPage));
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
     }
-  }, [status, router]);
+  }, [currentPage, totalPages]);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const paginatedEvents = filteredEvents.slice(startIdx, startIdx + itemsPerPage);
 
   if (status === 'loading') {
     return (
@@ -125,11 +151,22 @@ export default function MyEventsPage() {
     return null; // redirect will happen in useEffect
   }
 
-  const currentEvents = events.filter((event) => {
-    const eventDate = new Date(event.startDate);
-    const isUpcoming = eventDate >= now;
-    return activeTab === 'upcoming' ? isUpcoming : !isUpcoming;
-  });
+  const role = (session?.user as { randomKey?: string } | null)?.randomKey;
+  const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
+
+  if (!isOrganizer) {
+    return (
+      <Container className="py-5 text-center">
+        <h2 className="mb-3">My Events</h2>
+        <p className="text-muted mb-4">
+          Your account is a user account. Only organizers or admins can create or manage events.
+        </p>
+        <Button variant="primary" onClick={() => router.push('/search')}>
+          Browse Events
+        </Button>
+      </Container>
+    );
+  }
 
   const handleDelete = async (id: string) => {
     // eslint-disable-next-line no-alert
@@ -152,8 +189,6 @@ export default function MyEventsPage() {
       setDeletingId(null);
     }
   };
-
-  const filteredEvents = currentEvents.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <main>
@@ -207,10 +242,31 @@ export default function MyEventsPage() {
                   DISPLAY OPTION ▼
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item>Table View</Dropdown.Item>
-                  <Dropdown.Item>Card View</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setDisplayMode('table')}>Table View</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setDisplayMode('card')}>Card View</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
+            </div>
+          </Col>
+          <Col xs="auto">
+            <div className="d-flex gap-2 align-items-center">
+              {totalPages > 1 && (
+                [...Array(totalPages)].map((_, idx) => {
+                  const pageNum = idx + 1;
+                  const isActive = pageNum === currentPage;
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={isActive ? 'light' : 'outline-primary'}
+                      size="sm"
+                      style={{ minWidth: '40px' }}
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })
+              )}
             </div>
           </Col>
         </Row>
@@ -225,98 +281,141 @@ export default function MyEventsPage() {
           </Row>
         )}
 
-        {/* Events Table */}
-        <Row>
-          <Col>
-            <Table hover responsive className="bg-white">
-              <thead style={{ backgroundColor: '#f8f9fa' }}>
-                <tr>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>STATUS</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>TITLE</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>ORGANIZER</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>VENUE</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>CATEGORY</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>RECURRING?</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>START DATE</th>
-                  <th style={{ fontWeight: '600', color: '#6c757d' }}>END DATE</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEvents.length > 0 ? (
-                  filteredEvents.map((event) => (
-                    <tr key={event.id}>
-                      <td className="text-center">
-                        <StatusIcon eventStatus={event.status} />
-                      </td>
-                      <td>
-                        <div>
-                          <strong>{event.title}</strong>
-                          <div className="text-muted small">
-                            <a href={`/events/${event.id}`} className="text-primary me-2">
-                              View
-                            </a>
-                            |
-                            <a href={`/events/${event.id}/edit`} className="text-primary ms-2 me-2">
-                              Edit
-                            </a>
-                            |
-                            <button
-                              type="button"
-                              className="btn btn-link p-0 ms-2 text-danger"
-                              onClick={() => handleDelete(event.id)}
-                              disabled={deletingId === event.id}
-                            >
-                              <Trash size={16} />
-                              {' '}
-                              {deletingId === event.id ? 'Deleting...' : 'Delete'}
-                            </button>
+        {displayMode === 'table' ? (
+          <Row>
+            <Col>
+              <Table hover responsive className="bg-white">
+                <thead style={{ backgroundColor: '#f8f9fa' }}>
+                  <tr>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>STATUS</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>TITLE</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>ORGANIZER</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>VENUE</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>CATEGORY</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>RECURRING?</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>START DATE</th>
+                    <th style={{ fontWeight: '600', color: '#6c757d' }}>END DATE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedEvents.length > 0 ? (
+                    paginatedEvents.map((event) => (
+                      <tr key={event.id}>
+                        <td className="text-center">
+                          <StatusIcon eventStatus={event.status} />
+                        </td>
+                        <td>
+                          <div>
+                            <strong>{event.title}</strong>
+                            <div className="text-muted small">
+                              <a href={`/events/${event.id}`} className="text-primary me-2">
+                                View
+                              </a>
+                              |
+                              <a href={`/events/${event.id}/edit`} className="text-primary ms-2 me-2">
+                                Edit
+                              </a>
+                              |
+                              <button
+                                type="button"
+                                className="btn btn-link p-0 ms-2 text-danger"
+                                onClick={() => handleDelete(event.id)}
+                                disabled={deletingId === event.id}
+                              >
+                                <Trash size={16} />
+                                {' '}
+                                {deletingId === event.id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>{event.organizer}</td>
-                      <td>{event.venue || '—'}</td>
-                      <td>{event.category}</td>
-                      <td>{event.isRecurring ? 'Yes' : 'No'}</td>
-                      <td>
-                        {event.startDate}
-                        {event.startTime && (
-                          <>
-                            <br />
-                            <span className="text-muted small">{event.startTime}</span>
-                          </>
-                        )}
-                      </td>
-                      <td>
-                        {event.endDate}
-                        {event.endTime && (
-                          <>
-                            <br />
-                            <span className="text-muted small">{event.endTime}</span>
-                          </>
+                        </td>
+                        <td>{event.organizer}</td>
+                        <td>{event.venue || '—'}</td>
+                        <td>{event.category}</td>
+                        <td>{event.isRecurring ? 'Yes' : 'No'}</td>
+                        <td>
+                          {event.startDate}
+                          {event.startTime && (
+                            <>
+                              <br />
+                              <span className="text-muted small">{event.startTime}</span>
+                            </>
+                          )}
+                        </td>
+                        <td>
+                          {event.endDate}
+                          {event.endTime && (
+                            <>
+                              <br />
+                              <span className="text-muted small">{event.endTime}</span>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="text-center py-5">
+                        <p className="text-muted mb-3">No events found</p>
+                        {searchQuery && (
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={() => setSearchQuery('')}
+                          >
+                            Clear Search
+                          </Button>
                         )}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="text-center py-5">
-                      <p className="text-muted mb-3">No events found</p>
-                      {searchQuery && (
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => setSearchQuery('')}
-                        >
-                          Clear Search
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-          </Col>
-        </Row>
+                  )}
+                </tbody>
+              </Table>
+            </Col>
+          </Row>
+        ) : (
+          <div style={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden', paddingRight: '0.25rem' }}>
+            <Row className="g-3 align-items-stretch">
+              {paginatedEvents.length > 0 ? (
+                paginatedEvents.map((event) => (
+                  <Col lg={3} md={4} sm={6} key={event.id} className="d-flex flex-column">
+                    <div style={{ width: '100%', height: '100%' }}>
+                      <EventCard
+                        title={event.title}
+                        date={event.startDate}
+                        location={event.venue || '—'}
+                        organization={event.organizer}
+                        categories={event.categories || (event.category !== '—' ? [event.category] : [])}
+                        image={event.image || '/default-event.jpg'}
+                        onView={() => router.push(`/events/${event.id}`)}
+                        onVisit={() => router.push(`/events/${event.id}`)}
+                      />
+                    </div>
+                    <div className="mt-2 d-flex gap-3 position-relative">
+                      <a href={`/events/${event.id}/edit`} className="text-primary">
+                        Edit
+                      </a>
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 text-danger"
+                        onClick={() => handleDelete(event.id)}
+                        disabled={deletingId === event.id}
+                      >
+                        <Trash size={16} />
+                        {' '}
+                        {deletingId === event.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
+                  </Col>
+                ))
+              ) : (
+                <Col>
+                  <p className="text-center text-muted">No events found.</p>
+                </Col>
+              )}
+            </Row>
+          </div>
+        )}
       </Container>
     </main>
   );

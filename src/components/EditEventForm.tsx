@@ -55,7 +55,8 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
   const looksLikeImageUrl = (url: string) => {
     try {
       const parsed = new URL(url);
-      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(parsed.pathname);
+      const pathname = parsed.pathname.toLowerCase();
+      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(pathname);
     } catch {
       return false;
     }
