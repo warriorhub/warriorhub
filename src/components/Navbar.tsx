@@ -1,5 +1,3 @@
-/* eslint-disable react/jsx-indent, @typescript-eslint/indent */
-
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -11,24 +9,14 @@ const NavBar: React.FC = () => {
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
   const isLoading = status === 'loading';
-  const userWithRole = isAuthenticated && session?.user
-  ? {
-      email: session.user.email || 'unknown@example.com',
-      role:
-        // eslint-disable-next-line no-nested-ternary
-        session.user.randomKey === 'ADMIN'
-          ? 'ADMIN'
-          : session.user.randomKey === 'ORGANIZER'
-          ? 'ORGANIZER'
-          : 'USER',
-    }
-  : null;
 
-const role = userWithRole?.role;
-const currentUser = userWithRole?.email;
+  // Type assertion for role
+  const role = (session?.user as { role?: string })?.role ?? 'USER';
+  const currentUser = session?.user?.email ?? 'unknown@example.com';
 
   const pathName = usePathname();
-  if (status === 'loading') return null;
+  if (isLoading) return null;
+
   // Helper function to determine home page URL based on role
   const getHomeUrl = () => {
     if (!isAuthenticated) return '/';
@@ -36,6 +24,7 @@ const currentUser = userWithRole?.email;
     if (role === 'ORGANIZER') return '/organizer';
     return '/userhome';
   };
+
   return (
     <Navbar
       expand="lg"
@@ -49,11 +38,7 @@ const currentUser = userWithRole?.email;
         <Navbar.Brand
           href="/"
           className="text-white"
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: '600',
-            letterSpacing: '0.5px',
-          }}
+          style={{ fontSize: '1.5rem', fontWeight: '600', letterSpacing: '0.5px' }}
         >
           WarriorHub
         </Navbar.Brand>
@@ -61,9 +46,7 @@ const currentUser = userWithRole?.email;
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto justify-content-start">
             <Nav.Link
-              id="home-nav"
               href={getHomeUrl()}
-              key="home"
               active={pathName === '/' || pathName === '/userhome' || (role === 'ADMIN' && pathName === '/admin')}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -71,9 +54,7 @@ const currentUser = userWithRole?.email;
               Home
             </Nav.Link>
             <Nav.Link
-              id="search-events-nav"
               href="/search"
-              key="search"
               active={pathName === '/search'}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -81,9 +62,7 @@ const currentUser = userWithRole?.email;
               Search Events
             </Nav.Link>
             <Nav.Link
-              id="calendar-nav"
               href="/calendar"
-              key="calendar"
               active={pathName === '/calendar'}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -91,9 +70,7 @@ const currentUser = userWithRole?.email;
               Calendar
             </Nav.Link>
             <Nav.Link
-              id="help-nav"
               href="/contact"
-              key="contact"
               active={pathName === '/contact'}
               className="text-white mx-2"
               style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -102,9 +79,7 @@ const currentUser = userWithRole?.email;
             </Nav.Link>
             {isAuthenticated && (
               <Nav.Link
-                id="my-events-nav"
                 href="/myevents"
-                key="myevents"
                 active={pathName === '/myevents'}
                 className="text-white mx-2"
                 style={{ fontSize: '1rem', fontWeight: '400' }}
@@ -112,41 +87,43 @@ const currentUser = userWithRole?.email;
                 My Events
               </Nav.Link>
             )}
-{currentUser && role === 'ADMIN' && (
-  <Nav.Link
-    id="list-events-nav"
-    href="/admin/list-events"
-    key="list-events"
-    active={pathName === '/admin/list-events'}
-    className="text-white mx-2"
-    style={{ fontSize: '1rem', fontWeight: '400' }}
-  >
-    List Events
-  </Nav.Link>
-)}
+            {isAuthenticated && role === 'ADMIN' && (
+              <Nav.Link
+                href="/admin/list-events"
+                active={pathName === '/admin/list-events'}
+                className="text-white mx-2"
+                style={{ fontSize: '1rem', fontWeight: '400' }}
+              >
+                List Events
+              </Nav.Link>
+            )}
           </Nav>
           <Nav>
             {!isLoading && (
               isAuthenticated ? (
                 <NavDropdown id="login-dropdown" title={currentUser} className="text-white">
-                  <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
+                  <NavDropdown.Item href="/api/auth/signout">
                     <BoxArrowRight />
-                     Sign Out
+                    {' '}
+                    Sign Out
                   </NavDropdown.Item>
-                  <NavDropdown.Item id="login-dropdown-change-password" href="/auth/change-password">
+                  <NavDropdown.Item href="/auth/change-password">
                     <Lock />
-                     Change Password
+                    {' '}
+                    Change Password
                   </NavDropdown.Item>
                 </NavDropdown>
               ) : (
                 <NavDropdown id="login-dropdown" title="Login" className="text-white">
-                  <NavDropdown.Item id="login-dropdown-sign-in" href="/auth/signin">
+                  <NavDropdown.Item href="/auth/signin">
                     <PersonFill />
-                     Sign in
+                    {' '}
+                    Sign in
                   </NavDropdown.Item>
-                  <NavDropdown.Item id="login-dropdown-sign-up" href="/auth/signup">
+                  <NavDropdown.Item href="/auth/signup">
                     <PersonPlusFill />
-                     Sign up
+                    {' '}
+                    Sign up
                   </NavDropdown.Item>
                 </NavDropdown>
               )
