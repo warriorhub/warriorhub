@@ -32,12 +32,6 @@ const validCategories = [
   'Sports',
   'Workshop',
 ];
-const toDatetimeLocal = (isoString: string) => {
-  const date = new Date(isoString);
-  const offset = date.getTimezoneOffset(); // minutes
-  const localDate = new Date(date.getTime() - offset * 60 * 1000);
-  return localDate.toISOString().slice(0, 16);
-};
 
 export default function EditEventForm({ event, onSave }: EditEventFormProps) {
   const router = useRouter();
@@ -45,7 +39,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     name: event.title,
     description: event.description,
     location: event.location,
-    dateTime: toDatetimeLocal(event.dateTime),
+    dateTime: event.dateTime,
     categories: event.categories.join(', '),
     imageUrl: event.image,
   });

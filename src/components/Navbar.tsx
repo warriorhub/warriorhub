@@ -1,59 +1,35 @@
+/* eslint-disable react/jsx-indent, @typescript-eslint/indent */
+
 'use client';
 
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
-import {
-  BoxArrowRight,
-  Lock,
-  PersonFill,
-  PersonPlusFill,
-} from 'react-bootstrap-icons';
+import { BoxArrowRight, Lock, PersonFill, PersonPlusFill } from 'react-bootstrap-icons';
 
 const NavBar: React.FC = () => {
   const { data: session, status } = useSession();
-  const pathname = usePathname();
-
-  const isLoading = status === 'loading';
   const isAuthenticated = status === 'authenticated';
-
-  // Safely extract role/email ONLY when authenticated
-  const role = isAuthenticated
-    ? (session?.user as { role?: string })?.role
-    : undefined;
-
-  const email = isAuthenticated ? session?.user?.email : undefined;
-
+  const isLoading = status === 'loading';
+  const currentUser = isAuthenticated ? session?.user?.email : undefined;
+  const userWithRole = isAuthenticated ? (session?.user as { email: string; randomKey: string }) : null;
+  const role = userWithRole?.randomKey;
+  const pathName = usePathname();
+  if (status === 'loading') return null;
+  // Helper function to determine home page URL based on role
   const getHomeUrl = () => {
     if (!isAuthenticated) return '/';
     if (role === 'ADMIN') return '/admin';
     if (role === 'ORGANIZER') return '/organizer';
     return '/userhome';
   };
-
-  // 🔥 Show minimal safe layout while loading (prevents hydration errors)
-  if (isLoading) {
-    return (
-      <Navbar
-        expand="lg"
-        className="navbar-dark"
-        style={{ backgroundColor: '#024731' }}
-      >
-        <Container>
-          <Navbar.Brand className="text-white">WarriorHub</Navbar.Brand>
-        </Container>
-      </Navbar>
-    );
-  }
-
   return (
     <Navbar
       expand="lg"
       className="navbar-dark"
       style={{
         backgroundColor: '#024731',
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       }}
     >
       <Container>
@@ -68,96 +44,99 @@ const NavBar: React.FC = () => {
         >
           WarriorHub
         </Navbar.Brand>
-
-        <Navbar.Toggle aria-controls="navbar" />
-        <Navbar.Collapse id="navbar">
-          <Nav className="me-auto">
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto justify-content-start">
             <Nav.Link
+              id="home-nav"
               href={getHomeUrl()}
-              active={pathname === '/' || pathname === '/userhome'}
+              key="home"
+              active={pathName === '/' || pathName === '/userhome' || (role === 'ADMIN' && pathName === '/admin')}
               className="text-white mx-2"
+              style={{ fontSize: '1rem', fontWeight: '400' }}
             >
               Home
             </Nav.Link>
-
             <Nav.Link
+              id="search-events-nav"
               href="/search"
-              active={pathname === '/search'}
+              key="search"
+              active={pathName === '/search'}
               className="text-white mx-2"
+              style={{ fontSize: '1rem', fontWeight: '400' }}
             >
               Search Events
             </Nav.Link>
-
             <Nav.Link
+              id="calendar-nav"
               href="/calendar"
-              active={pathname === '/calendar'}
+              key="calendar"
+              active={pathName === '/calendar'}
               className="text-white mx-2"
+              style={{ fontSize: '1rem', fontWeight: '400' }}
             >
               Calendar
             </Nav.Link>
-
             <Nav.Link
+              id="help-nav"
               href="/contact"
-              active={pathname === '/contact'}
+              key="contact"
+              active={pathName === '/contact'}
               className="text-white mx-2"
+              style={{ fontSize: '1rem', fontWeight: '400' }}
             >
               Help
             </Nav.Link>
-
             {isAuthenticated && (
               <Nav.Link
+                id="my-events-nav"
                 href="/myevents"
-                active={pathname === '/myevents'}
+                key="myevents"
+                active={pathName === '/myevents'}
                 className="text-white mx-2"
+                style={{ fontSize: '1rem', fontWeight: '400' }}
               >
                 My Events
               </Nav.Link>
             )}
-
-            {isAuthenticated && role === 'ADMIN' && (
+            {currentUser && role === 'ADMIN' && (
               <Nav.Link
+                id="list-events-nav"
                 href="/admin/list-events"
-                active={pathname === '/admin/list-events'}
+                key="list-events"
+                active={pathName === '/admin/list-events'}
                 className="text-white mx-2"
+                style={{ fontSize: '1rem', fontWeight: '400' }}
               >
-                List Events
+                  List Events
               </Nav.Link>
             )}
           </Nav>
-
           <Nav>
-            {isAuthenticated ? (
-              <NavDropdown
-                id="dropdown"
-                title={email || 'Account'} // prevents hydration issues
-                className="text-white"
-              >
-                <NavDropdown.Item href="/api/auth/signout">
-                  <BoxArrowRight />
-                  {' '}
-                  Sign Out
-                </NavDropdown.Item>
-
-                <NavDropdown.Item href="/auth/change-password">
-                  <Lock />
-                  {' '}
-                  Change Password
-                </NavDropdown.Item>
-              </NavDropdown>
-            ) : (
-              <NavDropdown id="dropdown" title="Login" className="text-white">
-                <NavDropdown.Item href="/auth/signin">
-                  <PersonFill />
-                  {' '}
-                  Sign in
-                </NavDropdown.Item>
-
-                <NavDropdown.Item href="/auth/signup">
-                  <PersonPlusFill />
-                  {' '}
-                  Sign up
-                </NavDropdown.Item>
-              </NavDropdown>
+            {!isLoading && (
+              isAuthenticated ? (
+                <NavDropdown id="login-dropdown" title={currentUser} className="text-white">
+                  <NavDropdown.Item id="login-dropdown-sign-out" href="/api/auth/signout">
+                    <BoxArrowRight />
+                     Sign Out
+                  </NavDropdown.Item>
+                  <NavDropdown.Item id="login-dropdown-change-password" href="/auth/change-password">
+                    <Lock />
+                     Change Password
+                  </NavDropdown.Item>
+                </NavDropdown>
+              ) : (
+                <NavDropdown id="login-dropdown" title="Login" className="text-white">
+                  <NavDropdown.Item id="login-dropdown-sign-in" href="/auth/signin">
+                    <PersonFill />
+                     Sign in
+                  </NavDropdown.Item>
+                  <NavDropdown.Item id="login-dropdown-sign-up" href="/auth/signup">
+                    <PersonPlusFill />
+                     Sign up
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )
             )}
           </Nav>
         </Navbar.Collapse>

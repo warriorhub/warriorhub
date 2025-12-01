@@ -32,7 +32,7 @@ type EventTableRow = {
   image?: string;
 };
 
-// StatusIcon component
+// StatusIcon component moved outside to avoid defining during render
 const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
   if (eventStatus === 'attending' || eventStatus === 'attended') {
     return <Check size={24} className="text-success" />;
@@ -42,7 +42,7 @@ const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
 
 export default function MyEventsPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status, data: session } = useSession();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<EventTableRow[]>([]);
@@ -53,7 +53,6 @@ export default function MyEventsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  // Fetch events
   useEffect(() => {
     if (status !== 'authenticated') return;
     if (!session?.user?.id) {
@@ -101,16 +100,7 @@ export default function MyEventsPage() {
           };
         });
 
-        // Filter events for admins and organizers: only show their own events
-        const userEmail = session?.user?.email;
-        const filteredByOwner = mapped.filter((e) => {
-          if (!userEmail) return false;
-          const role = session?.user?.randomKey; // 'ADMIN' | 'ORGANIZER' | 'USER'
-          if (role === 'USER') return false; // users should not see this page?
-          return e.organizer === userEmail;
-        });
-
-        setEvents(filteredByOwner);
+        setEvents(mapped);
         setError('');
         setCurrentPage(1);
       } catch (err: unknown) {
@@ -148,7 +138,15 @@ export default function MyEventsPage() {
   }
 
   if (status === 'unauthenticated') {
-    return null; // redirect will happen in useEffect
+    return (
+      <Container className="py-5 text-center">
+        <h2 className="mb-3">Sign in required</h2>
+        <p className="text-muted mb-4">You need to sign in to view My Events.</p>
+        <Button variant="primary" onClick={() => router.push('/auth/signin?callbackUrl=/myevents')}>
+          Go to Sign In
+        </Button>
+      </Container>
+    );
   }
 
   const role = (session?.user as { randomKey?: string } | null)?.randomKey;
@@ -219,7 +217,7 @@ export default function MyEventsPage() {
           </Col>
         </Row>
 
-        {/* Tabs */}
+        {/* Tabs and Display Options */}
         <Row className="mb-3 align-items-center">
           <Col>
             <div className="d-flex gap-2">
