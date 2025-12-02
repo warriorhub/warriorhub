@@ -15,7 +15,13 @@
   "defaultCategories": [
     { "name": "Recreation" },
     { "name": "Food" },
-    { "name": "Career" }
+    { "name": "Career" },
+    { "name": "Free" },
+    { "name": "Cultural" },
+    { "name": "Academic" },
+    { "name": "Social" },
+    { "name": "Sports" },
+    { "name": "Workshop" }
   ],
 
   "defaultEvents": [
