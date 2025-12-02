@@ -34,7 +34,10 @@ export default function EventCard({
   const displayImage = isLikelyImage ? image : '/default-event.jpg';
 
   return (
-    <Card className="mb-3 shadow-sm h-100">
+    <Card
+      className="mb-3 shadow-sm h-100 d-flex flex-column"
+      style={{ minHeight: '100%', maxHeight: '100%' }}
+    >
       <div
         className="rounded-top"
         role="img"
@@ -50,20 +53,21 @@ export default function EventCard({
         }}
       />
 
-      <Card.Body>
-        {categories.map((c) => (
-          <Badge
-            key={c}
-            className="me-2"
-            style={{ backgroundColor: '#007bff', color: 'white' }}
-          >
-            {c}
-          </Badge>
-        ))}
+      <Card.Body className="d-flex flex-column">
+        <div className="d-flex flex-wrap gap-2 mb-2">
+          {categories.map((c) => (
+            <Badge
+              key={c}
+              style={{ backgroundColor: '#007bff', color: 'white', display: 'inline-block' }}
+            >
+              {c}
+            </Badge>
+          ))}
+        </div>
 
         <Card.Title className="mt-3">{title}</Card.Title>
 
-        <Card.Text>
+        <Card.Text className="flex-grow-1">
           {date}
           {' '}
           •
@@ -72,10 +76,7 @@ export default function EventCard({
           {organization}
         </Card.Text>
 
-        <div className="mt-3 d-flex gap-2">
-          {/* <Button variant="primary" onClick={onView}>
-            View Details
-          </Button> */}
+        <div className="mt-3 d-flex gap-2 flex-wrap">
           <Button variant="primary" onClick={handleVisit}>
             Visit Page
           </Button>
