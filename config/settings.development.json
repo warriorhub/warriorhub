@@ -12,6 +12,12 @@
     { "name": "Boogie Board", "quantity": 2, "owner": "admin@foo.com", "condition": "excellent" }
   ],
 
+  "defaultCategories": [
+    { "name": "Recreation" },
+    { "name": "Food" },
+    { "name": "Career" }
+  ],
+
   "defaultEvents": [
     { "name": "Test event", "description": "A test event", "dateTime": "2325-07-11T15:30:00-10:00",
       "location": "UH Manoa", "eventSize": "small", "categories": ["Recreation", "Free"] }

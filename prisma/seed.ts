@@ -46,7 +46,18 @@ async function main() {
       },
     });
   }
+  // Create categories
+  for (const categoryNew of config.defaultCategories) {
+    console.log(`  Adding category: ${categoryNew.name}`);
 
+    await prisma.categoryNew.upsert({
+      where: { name: categoryNew.name },
+      update: {},
+      create: {
+        name: categoryNew.name,
+      },
+    });
+  }
   // Create events (need a user with ORGANIZER role)
   if (config.defaultEvents) {
     // Find first ORGANIZER user or use first user
