@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation';
 import { Badge, Col, Container, Row } from 'react-bootstrap';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import authOptions from '@/lib/authOptions';
 import BackLink from '@/components/BackLink';
+import LikeButton from '@/components/LikeButton';
 
 interface EventDetailsPageProps {
   params: { id: string };
@@ -17,9 +20,41 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
     return notFound();
   }
 
+  // Get current user session
+  const session = await getServerSession(authOptions);
+  const userEmail = session?.user?.email;
+
+  // Get user role and interest status
+  let userRole = null;
+  let isInterested = false;
+
+  if (userEmail) {
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      include: {
+        interestedEvents: {
+          where: { id: params.id },
+          select: { id: true },
+        },
+      },
+    });
+
+    if (user) {
+      userRole = user.role;
+      isInterested = user.interestedEvents.length > 0;
+    }
+  }
+
   const date = new Date(event.dateTime);
-  const dateDisplay = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const timeDisplay = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const dateDisplay = date.toLocaleDateString(
+    'en-US',
+    { month: 'long', day: 'numeric', year: 'numeric' },
+  );
+  const timeDisplay = date.toLocaleTimeString(
+    'en-US',
+    { hour: 'numeric', minute: '2-digit' },
+  );
+
   const displayImage = (() => {
     try {
       const parsed = new URL(event.imageUrl || '');
@@ -39,7 +74,6 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
         <div className="mb-3">
           <BackLink label="← Back" fallbackHref="/search" />
         </div>
-
         <Row className="align-items-start g-4">
           <Col md={6}>
             <div
@@ -85,7 +119,6 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
                 {event.createdBy?.email ?? 'Unknown organizer'}
               </div>
             </div>
-
             <div className="mb-3">
               {event.categories.map((category: string) => (
                 <Badge key={category} bg="primary" className="me-2">
@@ -94,7 +127,19 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
               ))}
             </div>
 
-            <p className="lead">{event.description || 'No description provided.'}</p>
+            {/* Show Interested button only for USER role */}
+            {userRole === 'USER' && (
+              <div className="mb-3">
+                <LikeButton
+                  eventId={params.id}
+                  initialInterested={isInterested}
+                />
+              </div>
+            )}
+
+            <p className="lead">
+              {event.description || 'No description provided.'}
+            </p>
           </Col>
         </Row>
       </Container>

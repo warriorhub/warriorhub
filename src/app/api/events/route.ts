@@ -11,6 +11,7 @@ export async function GET() {
       orderBy: { dateTime: 'asc' },
       include: {
         createdBy: true,
+        potentialAttendees: true,
       },
     });
 
