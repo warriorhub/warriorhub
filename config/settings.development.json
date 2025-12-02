@@ -25,7 +25,10 @@
   ],
 
   "defaultEvents": [
-    { "name": "Test event", "description": "A test event", "dateTime": "2325-07-11T15:30:00-10:00",
-      "location": "UH Manoa", "eventSize": "small", "categories": ["Recreation", "Free"] }
+    { "name": "Test event", "description": "A test event",
+      "dateTime": "2325-07-11T15:30:00-10:00",
+      "location": "UH Manoa", "eventSize": "small",
+      "categories": ["Recreation", "Free"],
+      "categoriesNew": [{ "name": "Recreation" }, { "name": "Free" }] }
   ]
 }

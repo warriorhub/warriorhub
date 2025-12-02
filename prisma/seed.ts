@@ -86,6 +86,10 @@ async function main() {
           location: event.location,
           eventSize,
           categories,
+          categoriesNew: {
+            connect:
+              event.categoriesNew,
+          },
           createdById: organizerId, // Link to organizer user
         },
       });
