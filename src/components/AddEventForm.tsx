@@ -4,6 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
 import { Category } from '@prisma/client';
+/*
+todo: replace category selection with categoryNew. Old categories field can
+be empty so should not cause issues when displaying.
+ */
+// import { prisma } from '@/lib/prisma';
+//
+// const categoriesNew = await prisma.categoryNew.findMany();
 
 export default function AddEventForm() {
   const router = useRouter();
