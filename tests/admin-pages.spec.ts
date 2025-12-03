@@ -115,7 +115,6 @@ test('List Events and Edit Events', async ({ page }) => {
   await expect(page.getByRole('dialog')).toMatchAriaSnapshot('- button "Delete"');
   await expect(page.getByRole('dialog')).toMatchAriaSnapshot('- button "Cancel"');
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.locator('div').filter({ hasText: /^Date & Time$/ }).click();
 });
 test('Change Password Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/change-password');
