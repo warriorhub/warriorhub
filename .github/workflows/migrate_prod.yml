@@ -19,4 +19,5 @@ jobs:
       - name: Apply all pending migrations to the production database
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_PROD_URL }}
+          POSTGRES_PRISMA_URL: ${{ secrets.DATABASE_PROD_URL }}
+          POSTGRES_URL_NON_POOLING: ${{ secrets.DATABASE_PREVIEW_URL }}
