@@ -11,6 +11,7 @@ export async function GET() {
       orderBy: { dateTime: 'asc' },
       include: {
         createdBy: true,
+        categoriesNew: true,
         potentialAttendees: true,
       },
     });
@@ -38,12 +39,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // todo: validate shape of data with Zod, especially for new category object
     const {
       name,
       description,
       dateTime,
       location,
       categories,
+      categoriesNew,
       imageUrl,
     } = body;
 
@@ -58,6 +62,11 @@ export async function POST(req: NextRequest) {
         dateTime: new Date(dateTime),
         location,
         categories: categories || [],
+        categoriesNew: {
+          // use connect to prevent users from creating new categories
+          // Prisma Client will throw an exception if any record cannot be found
+          connect: categoriesNew,
+        },
         imageUrl: imageUrl || '/default-event.jpg',
         createdById: Number(userId),
       },

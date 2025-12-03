@@ -3,18 +3,14 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
-
-const categoryOptions = [
-  'Recreation',
-  'Food',
-  'Career',
-  'Free',
-  'Cultural',
-  'Academic',
-  'Social',
-  'Sports',
-  'Workshop',
-];
+import { Category } from '@prisma/client';
+/*
+todo: replace category selection with categoryNew. Old categories field can
+be empty so should not cause issues when displaying.
+ */
+// import { prisma } from '@/lib/prisma';
+//
+// const categoriesNew = await prisma.categoryNew.findMany();
 
 export default function AddEventForm() {
   const router = useRouter();
@@ -194,7 +190,7 @@ export default function AddEventForm() {
       <Form.Group className="mb-3" controlId="event-categories">
         <Form.Label>Categories (from schema)</Form.Label>
         <div className="d-flex flex-wrap gap-2">
-          {categoryOptions.map((cat) => (
+          {Object.keys(Category).map((cat) => (
             <Form.Check
               key={cat}
               type="checkbox"

@@ -12,8 +12,23 @@
     { "name": "Boogie Board", "quantity": 2, "owner": "admin@foo.com", "condition": "excellent" }
   ],
 
+  "defaultCategories": [
+    { "name": "Recreation" },
+    { "name": "Food" },
+    { "name": "Career" },
+    { "name": "Free" },
+    { "name": "Cultural" },
+    { "name": "Academic" },
+    { "name": "Social" },
+    { "name": "Sports" },
+    { "name": "Workshop" }
+  ],
+
   "defaultEvents": [
-    { "name": "Test event", "description": "A test event", "dateTime": "2325-07-11T15:30:00-10:00",
-      "location": "UH Manoa", "eventSize": "small", "categories": ["Recreation", "Free"] }
+    { "name": "Test event", "description": "A test event",
+      "dateTime": "2325-07-11T15:30:00-10:00",
+      "location": "UH Manoa", "eventSize": "small",
+      "categories": ["Recreation", "Free"],
+      "categoriesNew": [{ "name": "Recreation" }, { "name": "Free" }] }
   ]
 }

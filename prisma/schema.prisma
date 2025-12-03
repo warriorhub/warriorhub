@@ -18,17 +18,27 @@ model User {
 }
 
 model Event {
-  id                 String     @id @default(uuid()) @db.Uuid
-  name               String     @default("An event at UH Manoa")
+  id                 String        @id @default(uuid()) @db.Uuid
+  name               String        @default("An event at UH Manoa")
   description        String?
   dateTime           DateTime
   location           String
   eventSize          EventSize?
-  categories         Category[] @default([])
+  categories         Category[]    @default([])
+  categoriesNew      CategoryNew[]
+  imageUrl           String        @default("/default-event.jpg")
+  // User who created this event (ORGANIZER or ADMIN)
+  createdBy          User          @relation("EventCreator", fields: [createdById], references: [id])
   createdById        Int
-  imageUrl           String     @default("/default-event.jpg")
-  createdBy          User       @relation("EventCreator", fields: [createdById], references: [id])
-  potentialAttendees User[]     @relation("EventToUser")
+  // Users who RSVP'd
+  potentialAttendees User[]        @relation("EventToUser")
+}
+
+model CategoryNew {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  Events      Event[]
 }
 
 model Stuff {
