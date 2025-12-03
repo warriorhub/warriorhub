@@ -12,6 +12,7 @@ export async function GET() {
       include: {
         createdBy: true,
         categoriesNew: true,
+        potentialAttendees: true,
       },
     });
 

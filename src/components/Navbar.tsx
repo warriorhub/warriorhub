@@ -87,7 +87,7 @@ const NavBar: React.FC = () => {
             >
               Help
             </Nav.Link>
-            {isAuthenticated && (
+            {isAuthenticated && role !== 'ADMIN' && (
               <Nav.Link
                 id="my-events-nav"
                 href="/myevents"

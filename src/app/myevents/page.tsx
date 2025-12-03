@@ -12,7 +12,7 @@ import {
 } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { FileText, Check, Trash } from 'react-bootstrap-icons';
+import { FileText, Check, Trash, HeartFill } from 'react-bootstrap-icons';
 import { useSession } from 'next-auth/react';
 import EventCard from '@/components/EventCard';
 
@@ -30,9 +30,10 @@ type EventTableRow = {
   endTime: string;
   categories?: string[];
   image?: string;
+  isInterested?: boolean;
 };
 
-// StatusIcon component moved outside to avoid defining during render
+// StatusIcon component
 const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
   if (eventStatus === 'attending' || eventStatus === 'attended') {
     return <Check size={24} className="text-success" />;
@@ -49,9 +50,15 @@ export default function MyEventsPage() {
   const [error, setError] = useState<string>('');
   const now = useMemo(() => new Date(), []);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [displayMode, setDisplayMode] = useState<'table' | 'card'>('table');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
+  // Get user role
+  const role = (session?.user as { randomKey?: string } | null)?.randomKey;
+  const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
+  const isUser = role === 'USER';
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -67,13 +74,23 @@ export default function MyEventsPage() {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
-        const owned = data.filter(
-          (e) => String(e.createdById ?? e.createdBy?.id) === String(session.user.id),
-        );
+        let eventsToShow = [];
 
-        const mapped: EventTableRow[] = owned.map((e) => {
+        if (isUser) {
+          // For USERS: Show interested events (potentialAttendees contains this user)
+          eventsToShow = data.filter((e) => e.potentialAttendees?.some(
+            (u: any) => String(u.id) === String(session.user.id),
+          ));
+        } else {
+          // For ORGANIZERS/ADMINS: Show created events
+          eventsToShow = data.filter(
+            (e) => String(e.createdById ?? e.createdBy?.id) === String(session.user.id),
+          );
+        }
+
+        const mapped: EventTableRow[] = eventsToShow.map((e) => {
           const start = new Date(e.dateTime);
-          const end = new Date(start.getTime() + 60 * 60 * 1000); // assume 1 hour
+          const end = new Date(start.getTime() + 60 * 60 * 1000);
           const dateFormatter = new Intl.DateTimeFormat('en-US', {
             month: 'long',
             day: 'numeric',
@@ -97,6 +114,7 @@ export default function MyEventsPage() {
             endTime: timeFormatter.format(end),
             categories: e.categories ?? [],
             image: e.imageUrl ?? '/default-event.jpg',
+            isInterested: isUser,
           };
         });
 
@@ -111,7 +129,7 @@ export default function MyEventsPage() {
     };
 
     fetchEvents();
-  }, [status, session?.user?.id]);
+  }, [status, session?.user?.id, isUser]);
 
   const currentEvents = events.filter((event) => {
     const eventDate = new Date(event.startDate);
@@ -121,11 +139,13 @@ export default function MyEventsPage() {
 
   const filteredEvents = currentEvents.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
   const totalPages = Math.max(1, Math.ceil(filteredEvents.length / itemsPerPage));
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedEvents = filteredEvents.slice(startIdx, startIdx + itemsPerPage);
 
@@ -144,23 +164,6 @@ export default function MyEventsPage() {
         <p className="text-muted mb-4">You need to sign in to view My Events.</p>
         <Button variant="primary" onClick={() => router.push('/auth/signin?callbackUrl=/myevents')}>
           Go to Sign In
-        </Button>
-      </Container>
-    );
-  }
-
-  const role = (session?.user as { randomKey?: string } | null)?.randomKey;
-  const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
-
-  if (!isOrganizer) {
-    return (
-      <Container className="py-5 text-center">
-        <h2 className="mb-3">My Events</h2>
-        <p className="text-muted mb-4">
-          Your account is a user account. Only organizers or admins can create or manage events.
-        </p>
-        <Button variant="primary" onClick={() => router.push('/search')}>
-          Browse Events
         </Button>
       </Container>
     );
@@ -188,24 +191,50 @@ export default function MyEventsPage() {
     }
   };
 
+  const handleRemoveInterest = async (id: string) => {
+    setRemovingId(id);
+    try {
+      const res = await fetch(`/api/events/${id}/like`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to remove interest');
+      }
+      // Remove from list
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to remove interest';
+      setError(message);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   return (
     <main>
       <Container className="py-4">
         {/* Header */}
         <Row className="mb-4 align-items-center">
           <Col>
-            <h1 className="mb-0">My Events</h1>
+            <h1 className="mb-0">
+              {isUser ? 'My Interested Events' : 'My Events'}
+            </h1>
           </Col>
-          <Col xs="auto">
-            <Button
-              variant="primary"
-              size="lg"
-              style={{ backgroundColor: '#0d6efd', fontWeight: '600' }}
-              onClick={() => router.push('/myevents/add')}
-            >
-              ADD NEW
-            </Button>
-          </Col>
+          {/* Only show ADD NEW button for Organizers */}
+          {isOrganizer && (
+            <Col xs="auto">
+              <Button
+                variant="primary"
+                size="lg"
+                style={{ backgroundColor: '#0d6efd', fontWeight: '600' }}
+                onClick={() => router.push('/myevents/add')}
+              >
+                ADD NEW
+              </Button>
+            </Col>
+          )}
           <Col xs="auto">
             <Form.Control
               type="text"
@@ -300,7 +329,11 @@ export default function MyEventsPage() {
                     paginatedEvents.map((event) => (
                       <tr key={event.id}>
                         <td className="text-center">
-                          <StatusIcon eventStatus={event.status} />
+                          {event.isInterested ? (
+                            <HeartFill size={24} className="text-danger" />
+                          ) : (
+                            <StatusIcon eventStatus={event.status} />
+                          )}
                         </td>
                         <td>
                           <div>
@@ -309,21 +342,41 @@ export default function MyEventsPage() {
                               <a href={`/events/${event.id}`} className="text-primary me-2">
                                 View
                               </a>
-                              |
-                              <a href={`/events/${event.id}/edit`} className="text-primary ms-2 me-2">
-                                Edit
-                              </a>
-                              |
-                              <button
-                                type="button"
-                                className="btn btn-link p-0 ms-2 text-danger"
-                                onClick={() => handleDelete(event.id)}
-                                disabled={deletingId === event.id}
-                              >
-                                <Trash size={16} />
-                                {' '}
-                                {deletingId === event.id ? 'Deleting...' : 'Delete'}
-                              </button>
+                              {/* Show Edit/Delete for Organizers, Remove Interest for Users */}
+                              {isOrganizer && (
+                                <>
+                                  |
+                                  <a href={`/events/${event.id}/edit`} className="text-primary ms-2 me-2">
+                                    Edit
+                                  </a>
+                                  |
+                                  <button
+                                    type="button"
+                                    className="btn btn-link p-0 ms-2 text-danger"
+                                    onClick={() => handleDelete(event.id)}
+                                    disabled={deletingId === event.id}
+                                  >
+                                    <Trash size={16} />
+                                    {' '}
+                                    {deletingId === event.id ? 'Deleting...' : 'Delete'}
+                                  </button>
+                                </>
+                              )}
+                              {isUser && (
+                                <>
+                                  |
+                                  <button
+                                    type="button"
+                                    className="btn btn-link p-0 ms-2 text-danger"
+                                    onClick={() => handleRemoveInterest(event.id)}
+                                    disabled={removingId === event.id}
+                                  >
+                                    <HeartFill size={16} />
+                                    {' '}
+                                    {removingId === event.id ? 'Removing...' : 'Remove Interest'}
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -354,7 +407,11 @@ export default function MyEventsPage() {
                   ) : (
                     <tr>
                       <td colSpan={8} className="text-center py-5">
-                        <p className="text-muted mb-3">No events found</p>
+                        <p className="text-muted mb-3">
+                          {isUser
+                            ? 'No interested events yet. Browse events and mark your interest!'
+                            : 'No events found'}
+                        </p>
                         {searchQuery && (
                           <Button
                             variant="outline-secondary"
@@ -362,6 +419,14 @@ export default function MyEventsPage() {
                             onClick={() => setSearchQuery('')}
                           >
                             Clear Search
+                          </Button>
+                        )}
+                        {isUser && !searchQuery && (
+                          <Button
+                            variant="primary"
+                            onClick={() => router.push('/search')}
+                          >
+                            Browse Events
                           </Button>
                         )}
                       </td>
@@ -377,7 +442,12 @@ export default function MyEventsPage() {
               {paginatedEvents.length > 0 ? (
                 paginatedEvents.map((event) => (
                   <Col lg={3} md={4} sm={6} key={event.id} className="d-flex flex-column">
-                    <div style={{ width: '100%', height: '100%' }}>
+                    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                      {event.isInterested && (
+                        <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10 }}>
+                          <HeartFill size={24} className="text-danger" />
+                        </div>
+                      )}
                       <EventCard
                         title={event.title}
                         date={event.startDate}
@@ -389,26 +459,52 @@ export default function MyEventsPage() {
                         onVisit={() => router.push(`/events/${event.id}`)}
                       />
                     </div>
-                    <div className="mt-2 d-flex gap-3 position-relative">
-                      <a href={`/events/${event.id}/edit`} className="text-primary">
-                        Edit
-                      </a>
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 text-danger"
-                        onClick={() => handleDelete(event.id)}
-                        disabled={deletingId === event.id}
-                      >
-                        <Trash size={16} />
-                        {' '}
-                        {deletingId === event.id ? 'Deleting...' : 'Delete'}
-                      </button>
-                    </div>
+                    {/* Show Edit/Delete for Organizers, Remove Interest for Users */}
+                    {isOrganizer && (
+                      <div className="mt-2 d-flex gap-3 position-relative">
+                        <a href={`/events/${event.id}/edit`} className="text-primary">
+                          Edit
+                        </a>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 text-danger"
+                          onClick={() => handleDelete(event.id)}
+                          disabled={deletingId === event.id}
+                        >
+                          <Trash size={16} />
+                          {' '}
+                          {deletingId === event.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    )}
+                    {isUser && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 text-danger"
+                          onClick={() => handleRemoveInterest(event.id)}
+                          disabled={removingId === event.id}
+                        >
+                          <HeartFill size={16} />
+                          {' '}
+                          {removingId === event.id ? 'Removing...' : 'Remove Interest'}
+                        </button>
+                      </div>
+                    )}
                   </Col>
                 ))
               ) : (
                 <Col>
-                  <p className="text-center text-muted">No events found.</p>
+                  <p className="text-center text-muted">
+                    {isUser ? 'No interested events yet.' : 'No events found.'}
+                  </p>
+                  {isUser && (
+                    <div className="text-center">
+                      <Button variant="primary" onClick={() => router.push('/search')}>
+                        Browse Events
+                      </Button>
+                    </div>
+                  )}
                 </Col>
               )}
             </Row>
