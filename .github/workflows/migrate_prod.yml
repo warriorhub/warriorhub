@@ -21,4 +21,4 @@ jobs:
         run: npx prisma migrate deploy
         env:
           POSTGRES_PRISMA_URL: ${{ secrets.DATABASE_PROD_URL }}
-          POSTGRES_URL_NON_POOLING: ${{ secrets.DATABASE_PREVIEW_URL }}
+          POSTGRES_URL_NON_POOLING: ${{ secrets.DATABASE_PROD_URL }}
