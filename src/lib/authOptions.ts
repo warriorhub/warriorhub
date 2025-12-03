@@ -68,7 +68,7 @@ const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    // routering to homepage logic is now in src/app/admin/signin
+    // routing to homepage logic is now in src/app/admin/signin
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

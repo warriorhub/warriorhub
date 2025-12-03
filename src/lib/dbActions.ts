@@ -65,7 +65,7 @@ export async function signUp(credentials: { email: string; password: string }) {
 
 /**
  * Creates a new user in the database.
- * @param credentials, an object with the following properties: email, password.
+ * @param credentials an object with the following properties: email, password.
  */
 export async function createUser(credentials: { email: string; password: string }) {
   // console.log`createUser data: ${JSON.stringify(credentials, null, 2)}`);
@@ -80,7 +80,7 @@ export async function createUser(credentials: { email: string; password: string 
 
 /**
  * Changes the password of an existing user in the database.
- * @param credentials, an object with the following properties: email, password.
+ * @param credentials an object with the following properties: email, password.
  */
 export async function changePassword(credentials: { email: string; password: string }) {
   // console.log`changePassword data: ${JSON.stringify(credentials, null, 2)}`);
@@ -95,7 +95,7 @@ export async function changePassword(credentials: { email: string; password: str
 
 /**
  * Edits the role of an existing user in the database.
- * @param credentials, an object with the following properties: email, password.
+ * @param user a user object with the following properties: id, email, role.
  */
 export async function editUser(user: { id: number; email: string; role: 'USER' | 'ORGANIZER' | 'ADMIN' }) {
   await prisma.user.update({
