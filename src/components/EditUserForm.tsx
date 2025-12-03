@@ -16,7 +16,7 @@ type EditUserData = {
 
 const onSubmit = async (data: EditUserData) => {
   await editUser(data);
-  swal('Success', 'User role has been updated', 'success', {
+  await swal('Success', 'User role has been updated', 'success', {
     timer: 2000,
   });
 };
