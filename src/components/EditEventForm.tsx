@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
+import { Category } from '@prisma/client';
 
 export type EventForComponent = {
   id: string;
@@ -21,17 +22,7 @@ interface EditEventFormProps {
 }
 
 // Valid categories for Prisma enum
-const validCategories = [
-  'Recreation',
-  'Food',
-  'Career',
-  'Free',
-  'Cultural',
-  'Academic',
-  'Social',
-  'Sports',
-  'Workshop',
-];
+const validCategories = Object.keys(Category);
 
 export default function EditEventForm({ event, onSave }: EditEventFormProps) {
   const router = useRouter();
