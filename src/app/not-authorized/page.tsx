@@ -9,6 +9,8 @@ const NotAuthorized = () => (
           <h2>
             <p>Not Authorized</p>
           </h2>
+          <p>You don&apos;t have permission to access this page.</p>
+          <a href="/">Back to home</a>
         </Col>
       </Row>
     </Container>
