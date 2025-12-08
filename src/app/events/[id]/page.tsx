@@ -14,7 +14,12 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
   const event = await (prisma as any).event.findUnique({
     where: { id: params.id },
     include: {
-      createdBy: true,
+      createdBy: {
+        select: {
+          email: true,
+          organization: true,
+        },
+      },
       categoriesNew: true,
     },
   });
@@ -119,8 +124,9 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
               <div>
                 Hosted by
                 {' '}
-                {event.createdBy?.email ?? 'Unknown organizer'}
+                {event.createdBy?.organization || event.createdBy?.email || 'Unknown'}
               </div>
+              <div>{event.createdBy.email}</div>
             </div>
             <div className="mb-3">
               {/* Changed to use categoriesNew */}

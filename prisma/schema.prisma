@@ -13,6 +13,7 @@ model User {
   email            String  @unique
   password         String
   role             Role    @default(USER)
+  organization     String?
   createdEvents    Event[] @relation("EventCreator")
   interestedEvents Event[] @relation("EventToUser")
 }
