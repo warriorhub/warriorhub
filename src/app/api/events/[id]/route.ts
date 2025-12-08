@@ -23,12 +23,18 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
+    const { id } = params;
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
-        createdBy: true,
-        categoriesNew: true, // Add this
-        potentialAttendees: true, // Add this if you want
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            organization: true, // Add this
+          },
+        },
+        categoriesNew: true,
       },
     });
 

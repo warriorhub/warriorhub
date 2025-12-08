@@ -94,7 +94,7 @@ const SearchEvents = () => {
             dateTime: e.dateTime,
             date: `${month}/${day}/${year}`,
             location: e.location,
-            organization: e.createdBy?.email ?? 'Unknown',
+            organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
             categoriesNew: e.categoriesNew || [], // Changed
             description: e.description ?? '',
             image: e.imageUrl ?? '/default-event.jpg',

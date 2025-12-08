@@ -106,7 +106,7 @@ export default function MyEventsPage() {
             id: e.id,
             status: 'registered',
             title: e.name,
-            organizer: e.createdBy?.email ?? 'Unknown',
+            organizer: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
             venue: e.location,
             category: e.categoriesNew?.[0]?.name ?? '—',
             isRecurring: false,
