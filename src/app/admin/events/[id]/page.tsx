@@ -17,8 +17,7 @@ export default function EditEventPage() {
       const res = await fetch(`/api/events/${id}`);
       const data = await res.json();
 
-      // eslint-disable-next-line consistent-return
-      if (!data) return router.push('/admin/list-events'); // fallback
+      if (!data) return router.push('/admin/list-events');
 
       setEvent({
         id: data.id,
@@ -26,18 +25,16 @@ export default function EditEventPage() {
         dateTime: data.dateTime,
         location: data.location,
         organization: data.createdBy?.email ?? 'Unknown',
-        categories: data.categories ?? [],
+        categoriesNew: data.categoriesNew ?? [], // Changed from categories
         description: data.description ?? '',
         image: data.imageUrl ?? '/default-event.jpg',
       });
     };
-
     fetchEvent();
   }, [id, router]);
 
   const handleDelete = async () => {
     if (!id) return;
-
     await fetch(`/api/events/${id}`, { method: 'DELETE' });
     router.push('/admin/list-events');
   };
@@ -45,7 +42,9 @@ export default function EditEventPage() {
   const handleSave = async (updatedEvent: EventForComponent) => {
     setEvent(updatedEvent);
 
-    // PUT request to API
+    // Convert categoriesNew to the format the API expects
+    const categoriesNewForAPI = updatedEvent.categoriesNew?.map(cat => ({ id: cat.id })) || [];
+
     await fetch(`/api/events/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -54,11 +53,10 @@ export default function EditEventPage() {
         description: updatedEvent.description,
         location: updatedEvent.location,
         dateTime: updatedEvent.dateTime,
-        categories: updatedEvent.categories,
+        categoriesNew: categoriesNewForAPI, // Changed from categories
         imageUrl: updatedEvent.image,
       }),
     });
-
     router.push('/admin/list-events');
   };
 

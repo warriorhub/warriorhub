@@ -8,10 +8,11 @@ interface Event {
   date: string;
   location: string;
   description: string;
-  categories: string[];
+  categoriesNew: { id: number; name: string }[]; // Changed
   organization: string;
   image: string;
 }
+
 export type EventForComponent = {
   id: string;
   title: string;
@@ -19,7 +20,7 @@ export type EventForComponent = {
   date: string;
   location: string;
   organization: string;
-  categories: string[];
+  categoriesNew: { id: number; name: string }[]; // Changed
   description: string;
   image: string;
 };
@@ -60,9 +61,7 @@ export default function EventDetailsForm({ show, event, onClose }: EventDetailsF
         <h2>{event.title}</h2>
         <p>
           {event.date}
-          {' '}
-          •
-          {' '}
+          {' • '}
           {event.location}
         </p>
         <p>
@@ -80,9 +79,10 @@ export default function EventDetailsForm({ show, event, onClose }: EventDetailsF
         />
         <p className="mt-3">{event.description}</p>
         <div className="mt-2">
-          {event.categories.map((c) => (
+          {/* Changed to use categoriesNew */}
+          {event.categoriesNew && event.categoriesNew.length > 0 && event.categoriesNew.map((c) => (
             <span
-              key={c}
+              key={c.id}
               style={{
                 marginRight: '0.5rem',
                 padding: '0.25rem 0.5rem',
@@ -92,7 +92,7 @@ export default function EventDetailsForm({ show, event, onClose }: EventDetailsF
                 fontSize: '0.8rem',
               }}
             >
-              {c}
+              {c.name}
             </span>
           ))}
         </div>

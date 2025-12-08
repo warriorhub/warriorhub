@@ -13,7 +13,10 @@ interface EventDetailsPageProps {
 export default async function EventDetailsPage({ params }: EventDetailsPageProps) {
   const event = await (prisma as any).event.findUnique({
     where: { id: params.id },
-    include: { createdBy: true },
+    include: {
+      createdBy: true,
+      categoriesNew: true,
+    },
   });
 
   if (!event) {
@@ -120,11 +123,16 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
               </div>
             </div>
             <div className="mb-3">
-              {event.categories.map((category: string) => (
-                <Badge key={category} bg="primary" className="me-2">
-                  {category}
-                </Badge>
-              ))}
+              {/* Changed to use categoriesNew */}
+              {event.categoriesNew && event.categoriesNew.length > 0 ? (
+                event.categoriesNew.map((category: { id: number; name: string }) => (
+                  <Badge key={category.id} bg="primary" className="me-2">
+                    {category.name}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-muted">No categories</span>
+              )}
             </div>
 
             {/* Show Interested button only for USER role */}
