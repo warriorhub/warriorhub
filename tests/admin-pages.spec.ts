@@ -106,7 +106,7 @@ test('List Events and Edit Events', async ({ page }) => {
   await page.locator('textarea[name="description"]').click();
   await page.locator('input[name="location"]').click();
   await page.locator('input[name="dateTime"]').click();
-  await page.locator('input[name="categories"]').click();
+  await page.getByRole('checkbox', { name: 'Recreation' }).click();
   await page.locator('input[name="imageUrl"]').click();
   await page.getByRole('button', { name: 'Save' }).click();
   page.once('dialog', dialog => {
