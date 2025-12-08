@@ -6,6 +6,12 @@ import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import EventCard from '../../components/EventCard';
 import EventDetailsForm from '../../components/EventDetailsForm';
 
+type CategoryNew = {
+  id: number;
+  name: string;
+  description?: string;
+};
+
 type DBEvent = {
   createdBy: any;
   id: string;
@@ -14,7 +20,7 @@ type DBEvent = {
   location: string;
   organizer: string;
   description: string | null;
-  categories: string[];
+  categoriesNew: CategoryNew[]; // Changed
   imageUrl: string | null;
 };
 
@@ -25,7 +31,7 @@ type EventForComponent = {
   date: string;
   location: string;
   organization: string;
-  categories: string[];
+  categoriesNew: CategoryNew[]; // Changed
   description: string;
   image: string;
 };
@@ -43,6 +49,7 @@ const isSameDate = (date1: string, date2: string) => {
 const SearchEvents = () => {
   const router = useRouter();
   const [events, setEvents] = useState<EventForComponent[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<CategoryNew[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventForComponent | null>(null);
 
@@ -51,7 +58,7 @@ const SearchEvents = () => {
     organization: '',
     location: '',
     date: '',
-    category: '',
+    categoryId: 0, // Changed to store category ID
   });
 
   const openModal = (event: EventForComponent) => {
@@ -60,6 +67,14 @@ const SearchEvents = () => {
   };
 
   const closeModal = () => setShowDetails(false);
+
+  // Fetch available categories
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setAvailableCategories(data))
+      .catch(err => console.error('Error fetching categories:', err));
+  }, []);
 
   // Fetch events from DB
   useEffect(() => {
@@ -77,10 +92,10 @@ const SearchEvents = () => {
             id: e.id,
             title: e.name,
             dateTime: e.dateTime,
-            date: `${month}/${day}/${year}`, // display correct date
+            date: `${month}/${day}/${year}`,
             location: e.location,
             organization: e.createdBy?.email ?? 'Unknown',
-            categories: e.categories,
+            categoriesNew: e.categoriesNew || [], // Changed
             description: e.description ?? '',
             image: e.imageUrl ?? '/default-event.jpg',
           };
@@ -103,10 +118,10 @@ const SearchEvents = () => {
   };
 
   // Handle category selection
-  const handleCategoryClick = (category: string) => {
+  const handleCategoryClick = (categoryId: number) => {
     setSearchFilters((prev) => ({
       ...prev,
-      category: prev.category === category ? '' : category,
+      categoryId: prev.categoryId === categoryId ? 0 : categoryId,
     }));
   };
 
@@ -117,13 +132,13 @@ const SearchEvents = () => {
       organization: '',
       location: '',
       date: '',
-      category: '',
+      categoryId: 0,
     });
   };
 
-  // Helper function for button colors (avoids nested ternaries)
-  const getCategoryButtonColor = (category: string, index: number) => {
-    if (searchFilters.category === category) return 'rgb(0,150,136)'; // selected
+  // Helper function for button colors
+  const getCategoryButtonColor = (categoryId: number, index: number) => {
+    if (searchFilters.categoryId === categoryId) return 'rgb(0,150,136)'; // selected
     if (index % 2 === 0) return 'rgb(42,78,223)'; // even
     return 'rgb(255,99,71)'; // odd
   };
@@ -136,23 +151,13 @@ const SearchEvents = () => {
     const matchesDate = searchFilters.date
       ? isSameDate(event.dateTime, searchFilters.date)
       : true;
-    const matchesCategory = searchFilters.category
-      ? event.categories.includes(searchFilters.category)
+    const matchesCategory = searchFilters.categoryId
+      ? event.categoriesNew.some(c => c.id === searchFilters.categoryId)
       : true;
 
     return matchesName && matchesOrg && matchesLocation && matchesDate && matchesCategory;
   });
 
-  const categoryButtons = [
-    'Recreation',
-    'Food',
-    'Career',
-    'Free',
-    'Cultural',
-    'Academic',
-    'Social',
-    'Workshop',
-    'Sports'];
   return (
     <Container id="search-events" fluid className="py-4">
       <Row className="mb-4">
@@ -227,19 +232,19 @@ const SearchEvents = () => {
 
       <Col className="mb-4">
         <h5>Categories</h5>
-        {categoryButtons.map((c, i) => (
+        {availableCategories.map((c, i) => (
           <Button
-            key={c}
+            key={c.id}
             style={{
-              backgroundColor: getCategoryButtonColor(c, i),
+              backgroundColor: getCategoryButtonColor(c.id, i),
               color: 'white',
               border: 'none',
             }}
             size="sm"
             className="me-2 rounded-pill mb-2"
-            onClick={() => handleCategoryClick(c)}
+            onClick={() => handleCategoryClick(c.id)}
           >
-            {c}
+            {c.name}
           </Button>
         ))}
       </Col>
@@ -253,7 +258,7 @@ const SearchEvents = () => {
                 date={event.date}
                 location={event.location}
                 organization={event.organization}
-                categories={event.categories}
+                categories={event.categoriesNew.map(c => c.name)} // Convert to string array for EventCard
                 image={event.image}
                 onView={() => openModal(event)}
                 onVisit={() => router.push(`/events/${event.id}`)}

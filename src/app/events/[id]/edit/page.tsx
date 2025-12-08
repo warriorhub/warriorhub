@@ -7,7 +7,10 @@ const formatDateTimeLocal = (date: Date) => date.toISOString().slice(0, 16);
 export default async function EditEventPage({ params }: { params: { id: string } }) {
   const event = await prisma.event.findUnique({
     where: { id: params.id },
-    include: { createdBy: true },
+    include: {
+      createdBy: true,
+      categoriesNew: true,
+    },
   });
 
   if (!event) return notFound();
@@ -18,7 +21,7 @@ export default async function EditEventPage({ params }: { params: { id: string }
     dateTime: formatDateTimeLocal(new Date(event.dateTime)),
     location: event.location,
     organization: event.createdBy?.email ?? 'Unknown',
-    categories: event.categories ?? [],
+    categoriesNew: event.categoriesNew ?? [],
     description: event.description ?? '',
     image: event.imageUrl ?? '/default-event.jpg',
   };
