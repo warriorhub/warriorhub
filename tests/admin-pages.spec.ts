@@ -92,10 +92,15 @@ test('List Events and Edit Events', async ({ page }) => {
   await expect(
     page.getByText('View, edit, and remove events.'),
   ).toMatchAriaSnapshot('- paragraph: View, edit, and remove events.');
-  await expect(page.locator('thead')).toMatchAriaSnapshot('- cell "Name"');
-  await expect(page.locator('thead')).toMatchAriaSnapshot('- cell "Date & Time"');
-  await expect(page.locator('thead')).toMatchAriaSnapshot('- cell "Location"');
-  await expect(page.locator('thead')).toMatchAriaSnapshot('- cell "Actions"');
+  await expect(page.locator('thead')).toMatchAriaSnapshot(`
+    - rowgroup:
+      - row "Name Date & Time Location Categories Actions":
+        - columnheader "Name"
+        - columnheader "Date & Time"
+        - columnheader "Location"
+        - columnheader "Categories"
+        - columnheader "Actions"
+  `);
   await page.goto(' http://localhost:3000/admin/events/9eb3cb55-f176-44b6-a654-9d562d7a9cdc');
   await page.locator('input[name="name"]').click();
   await page.locator('textarea[name="description"]').click();
