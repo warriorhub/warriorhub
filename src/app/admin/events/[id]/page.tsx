@@ -17,7 +17,10 @@ export default function EditEventPage() {
       const res = await fetch(`/api/events/${id}`);
       const data = await res.json();
 
-      if (!data) return router.push('/admin/list-events');
+      if (!data) {
+        router.push('/admin/list-events');
+        return;
+      }
 
       setEvent({
         id: data.id,

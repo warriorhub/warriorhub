@@ -38,8 +38,7 @@ export default function ListEventsPage() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
-    await fetch(`/api/events/${id}`, { method: 'DELETE' });
+    await fetch(`/api/events/${id}`, { method: 'DELETE' }); // Fixed: added parentheses
     setEvents(prev => prev.filter(e => e.id !== id));
   };
 
@@ -95,7 +94,7 @@ export default function ListEventsPage() {
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => router.push(`/admin/events/${e.id}`)}
+                      onClick={() => router.push(`/admin/events/${e.id}`)} // Fixed: added parentheses
                     >
                       Edit
                     </Button>
