@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import { PrismaClient, Role, Condition, EventSize, Category } from '@prisma/client';
+import { PrismaClient, Role, EventSize, Category } from '@prisma/client';
 import { hash } from 'bcrypt';
 import * as config from '../config/settings.development.json';
 
@@ -30,22 +30,6 @@ async function main() {
     createdUsers[account.email] = user.id;
   }
 
-  // Create stuff
-  for (const data of config.defaultData) {
-    const condition = (data.condition as Condition) || Condition.good;
-    console.log(`  Adding stuff: ${JSON.stringify(data)}`);
-
-    await prisma.stuff.upsert({
-      where: { id: config.defaultData.indexOf(data) + 1 },
-      update: {},
-      create: {
-        name: data.name,
-        quantity: data.quantity,
-        owner: data.owner,
-        condition,
-      },
-    });
-  }
   // Create categories
   for (const categoryNew of config.defaultCategories) {
     console.log(`  Adding category: ${categoryNew.name}`);

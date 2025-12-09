@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 'use client';
 
 import {
@@ -28,7 +30,7 @@ type EventTableRow = {
   startTime: string;
   endDate: string;
   endTime: string;
-  categories?: string[];
+  categoriesNew?: { id: number; name: string }[];
   image?: string;
   isInterested?: boolean;
 };
@@ -104,15 +106,15 @@ export default function MyEventsPage() {
             id: e.id,
             status: 'registered',
             title: e.name,
-            organizer: e.createdBy?.email ?? 'Unknown',
+            organizer: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
             venue: e.location,
-            category: e.categories?.[0] ?? '—',
+            category: e.categoriesNew?.[0]?.name ?? '—',
             isRecurring: false,
             startDate: dateFormatter.format(start),
             startTime: timeFormatter.format(start),
             endDate: dateFormatter.format(end),
             endTime: timeFormatter.format(end),
-            categories: e.categories ?? [],
+            categoriesNew: e.categoriesNew ?? [],
             image: e.imageUrl ?? '/default-event.jpg',
             isInterested: isUser,
           };
@@ -453,7 +455,7 @@ export default function MyEventsPage() {
                         date={event.startDate}
                         location={event.venue || '—'}
                         organization={event.organizer}
-                        categories={event.categories || (event.category !== '—' ? [event.category] : [])}
+                        categories={event.categoriesNew?.map(c => c.name) || (event.category !== '—' ? [event.category] : [])}
                         image={event.image || '/default-event.jpg'}
                         onView={() => router.push(`/events/${event.id}`)}
                         onVisit={() => router.push(`/events/${event.id}`)}

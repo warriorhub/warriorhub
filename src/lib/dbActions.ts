@@ -47,6 +47,7 @@ export async function signUp(credentials: { email: string; password: string }) {
         email: credentials.email,
         password: hashedPassword,
         role: 'USER', // Default role
+        organization: null,
       },
     });
 

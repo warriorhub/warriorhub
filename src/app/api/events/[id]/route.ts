@@ -11,6 +11,7 @@ const getAuthContext = async (req: NextRequest) => {
   ]);
   const tokenRole = (token as { randomKey?: string } | null)?.randomKey;
   const sessionRole = (session?.user as { randomKey?: string } | undefined)?.randomKey;
+
   return {
     userId: token?.id ?? session?.user?.id,
     role: tokenRole ?? sessionRole,
@@ -22,13 +23,25 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
+    const { id } = params;
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
-      include: { createdBy: true },
+      where: { id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            organization: true, // Add this
+          },
+        },
+        categoriesNew: true,
+      },
     });
+
     if (!event) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
+
     return NextResponse.json(event);
   } catch (error) {
     console.error('Error fetching event:', error);
@@ -49,12 +62,14 @@ export async function PUT(
     const existing = await prisma.event.findUnique({
       where: { id: params.id },
     });
+
     if (!existing) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
     const isOwner = String(auth.userId) === String(existing.createdById);
     const isAdmin = auth.role === 'ADMIN';
+
     if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -65,7 +80,7 @@ export async function PUT(
       description,
       dateTime,
       location,
-      categories,
+      categoriesNew, // Changed from categories
       imageUrl,
     } = body;
 
@@ -80,10 +95,16 @@ export async function PUT(
         description: description || null,
         dateTime: new Date(dateTime),
         location,
-        categories: categories || [],
+        categoriesNew: {
+          set: [], // Clear existing categories
+          connect: categoriesNew || [], // Connect new ones: [{id: 1}, {id: 2}]
+        },
         imageUrl: imageUrl || '/default-event.jpg',
       },
-      include: { createdBy: true },
+      include: {
+        createdBy: true,
+        categoriesNew: true, // Include in response
+      },
     });
 
     return NextResponse.json(updated);
@@ -106,6 +127,7 @@ export async function DELETE(
     const existing = await prisma.event.findUnique({
       where: { id: params.id },
     });
+
     if (!existing) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
