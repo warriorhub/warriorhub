@@ -21,7 +21,7 @@ type DBEvent = {
   dateTime: string;
   location: string;
   description: string | null;
-  categories: string[];
+  categoriesNew: { id: number; name: string }[];
   imageUrl: string | null;
   createdBy?: { email?: string };
 };

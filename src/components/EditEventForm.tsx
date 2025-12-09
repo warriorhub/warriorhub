@@ -1,9 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
-import { Category } from '@prisma/client';
 
 export type EventForComponent = {
   id: string;
@@ -11,7 +10,7 @@ export type EventForComponent = {
   dateTime: string;
   location: string;
   organization: string;
-  categories: string[];
+  categoriesNew: { id: number; name: string }[]; // Changed from categories: string[]
   description: string;
   image: string;
 };
@@ -21,8 +20,11 @@ interface EditEventFormProps {
   onSave?: (updatedEvent: EventForComponent) => void;
 }
 
-// Valid categories for Prisma enum
-const validCategories = Object.keys(Category);
+type CategoryNew = {
+  id: number;
+  name: string;
+  description?: string;
+};
 
 export default function EditEventForm({ event, onSave }: EditEventFormProps) {
   const router = useRouter();
@@ -31,11 +33,20 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     description: event.description,
     location: event.location,
     dateTime: event.dateTime,
-    categories: event.categories.join(', '),
+    categoriesNew: event.categoriesNew || [],
     imageUrl: event.image,
   });
+  const [availableCategories, setAvailableCategories] = useState<CategoryNew[]>([]);
   const [success, setSuccess] = useState(false);
   const [imageUrlError, setImageUrlError] = useState('');
+
+  // Fetch available categories on mount
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setAvailableCategories(data))
+      .catch(err => console.error('Error fetching categories:', err));
+  }, []);
 
   const looksLikeImageUrl = (url: string) => {
     try {
@@ -52,6 +63,29 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCategoryChange = (categoryId: number, checked: boolean) => {
+    setForm(prev => {
+      const current = prev.categoriesNew || [];
+      if (checked) {
+        // Add category
+        const categoryToAdd = availableCategories.find(c => c.id === categoryId);
+        if (categoryToAdd && !current.some(c => c.id === categoryId)) {
+          return {
+            ...prev,
+            categoriesNew: [...current, { id: categoryToAdd.id, name: categoryToAdd.name }],
+          };
+        }
+      } else {
+        // Remove category
+        return {
+          ...prev,
+          categoriesNew: current.filter(c => c.id !== categoryId),
+        };
+      }
+      return prev;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -62,11 +96,8 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
       return;
     }
 
-    // Clean categories: trim, remove empty, keep only valid enum values
-    const categoriesArray = form.categories
-      .split(',')
-      .map(c => c.trim())
-      .filter(c => c && validCategories.includes(c));
+    // Convert categoriesNew to API format: [{id: 1}, {id: 2}]
+    const categoriesNewForAPI = form.categoriesNew.map(cat => ({ id: cat.id }));
 
     const res = await fetch(`/api/events/${event.id}`, {
       method: 'PUT',
@@ -76,7 +107,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
         description: form.description,
         location: form.location,
         dateTime: form.dateTime,
-        categories: categoriesArray,
+        categoriesNew: categoriesNewForAPI,
         imageUrl: form.imageUrl,
       }),
     });
@@ -93,7 +124,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
       dateTime: updatedData.dateTime,
       location: updatedData.location,
       organization: updatedData.createdBy?.email ?? 'Unknown',
-      categories: updatedData.categories ?? [],
+      categoriesNew: updatedData.categoriesNew ?? [],
       description: updatedData.description ?? '',
       image: updatedData.imageUrl ?? '/default-event.jpg',
     };
@@ -126,14 +157,23 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
         <Form.Control type="datetime-local" name="dateTime" value={form.dateTime} onChange={handleChange} />
       </Form.Group>
 
-      <Form.Group className="mb-2">
-        <Form.Label>Categories (comma separated)</Form.Label>
-        <Form.Control type="text" name="categories" value={form.categories} onChange={handleChange} />
-        <Form.Text className="text-muted">
-          Valid categories:
-          {' '}
-          {validCategories.join(', ')}
-        </Form.Text>
+      <Form.Group className="mb-3">
+        <Form.Label>Categories</Form.Label>
+        <div className="d-flex flex-wrap gap-3">
+          {availableCategories.map(category => (
+            <Form.Check
+              key={category.id}
+              type="checkbox"
+              id={`category-${category.id}`}
+              label={category.name}
+              checked={form.categoriesNew.some(c => c.id === category.id)}
+              onChange={e => handleCategoryChange(category.id, e.target.checked)}
+            />
+          ))}
+        </div>
+        {availableCategories.length === 0 && (
+          <Form.Text className="text-muted">Loading categories...</Form.Text>
+        )}
       </Form.Group>
 
       <Form.Group className="mb-2">

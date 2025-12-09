@@ -1,16 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
-import { Category } from '@prisma/client';
-/*
-todo: replace category selection with categoryNew. Old categories field can
-be empty so should not cause issues when displaying.
- */
-// import { prisma } from '@/lib/prisma';
-//
-// const categoriesNew = await prisma.categoryNew.findMany();
+
+type CategoryNew = {
+  id: number;
+  name: string;
+  description?: string;
+};
 
 export default function AddEventForm() {
   const router = useRouter();
@@ -21,12 +19,21 @@ export default function AddEventForm() {
     time: '',
     location: '',
     imageUrl: '',
-    categories: [] as string[],
+    categoriesNew: [] as { id: number; name: string }[], // Changed
   });
+  const [availableCategories, setAvailableCategories] = useState<CategoryNew[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [imageUrlError, setImageUrlError] = useState('');
+
+  // Fetch available categories
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setAvailableCategories(data))
+      .catch(err => console.error('Error fetching categories:', err));
+  }, []);
 
   const looksLikeImageUrl = (url: string) => {
     try {
@@ -43,14 +50,14 @@ export default function AddEventForm() {
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCategoryToggle = (category: string) => {
+  const handleCategoryToggle = (categoryId: number, categoryName: string) => {
     setFormState((prev) => {
-      const exists = prev.categories.includes(category);
+      const exists = prev.categoriesNew.some(c => c.id === categoryId);
       return {
         ...prev,
-        categories: exists
-          ? prev.categories.filter((c) => c !== category)
-          : [...prev.categories, category],
+        categoriesNew: exists
+          ? prev.categoriesNew.filter((c) => c.id !== categoryId)
+          : [...prev.categoriesNew, { id: categoryId, name: categoryName }],
       };
     });
   };
@@ -70,6 +77,9 @@ export default function AddEventForm() {
 
     try {
       const dateTime = new Date(`${formState.date}T${formState.time || '00:00'}`);
+      // Convert to API format: [{id: 1}, {id: 2}]
+      const categoriesNewForAPI = formState.categoriesNew.map(cat => ({ id: cat.id }));
+
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,7 +89,7 @@ export default function AddEventForm() {
           description: formState.description,
           dateTime,
           location: formState.location,
-          categories: formState.categories,
+          categoriesNew: categoriesNewForAPI, // Changed
           imageUrl: formState.imageUrl || undefined,
         }),
       });
@@ -97,7 +107,7 @@ export default function AddEventForm() {
         time: '',
         location: '',
         imageUrl: '',
-        categories: [],
+        categoriesNew: [],
       });
       router.push('/myevents');
     } catch (err: unknown) {
@@ -188,19 +198,22 @@ export default function AddEventForm() {
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="event-categories">
-        <Form.Label>Categories (from schema)</Form.Label>
+        <Form.Label>Categories</Form.Label>
         <div className="d-flex flex-wrap gap-2">
-          {Object.keys(Category).map((cat) => (
+          {availableCategories.map((cat) => (
             <Form.Check
-              key={cat}
+              key={cat.id}
               type="checkbox"
-              id={`cat-${cat}`}
-              label={cat}
-              checked={formState.categories.includes(cat)}
-              onChange={() => handleCategoryToggle(cat)}
+              id={`cat-${cat.id}`}
+              label={cat.name}
+              checked={formState.categoriesNew.some(c => c.id === cat.id)}
+              onChange={() => handleCategoryToggle(cat.id, cat.name)}
             />
           ))}
         </div>
+        {availableCategories.length === 0 && (
+          <Form.Text className="text-muted">Loading categories...</Form.Text>
+        )}
       </Form.Group>
 
       <Button type="submit" disabled={submitting}>
