@@ -48,3 +48,5 @@ settings.production.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# Playwright session files
+tests/playwright-auth-sessions/*.json
