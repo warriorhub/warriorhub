@@ -1,0 +1,17 @@
+- row /Raising hens in a backyard View\| Remove Interest org@foo\.com Waimanalo CARES Center — No December \d+, \d+ 9:\d+ AM December \d+, \d+ \d+:\d+ AM/:
+  - cell:
+    - img
+  - cell "Raising hens in a backyard View| Remove Interest":
+    - strong: Raising hens in a backyard
+    - link "View":
+      - /url: /events/8c9f2f58-6c1c-4b89-bb6f-2bb1c6edb2c4
+    - text: ""
+    - button "Remove Interest":
+      - img
+      - text: ""
+  - cell "org@foo.com"
+  - cell "Waimanalo CARES Center"
+  - cell "—"
+  - cell "No"
+  - cell /December \d+, \d+ 9:\d+ AM/
+  - cell /December \d+, \d+ \d+:\d+ AM/
