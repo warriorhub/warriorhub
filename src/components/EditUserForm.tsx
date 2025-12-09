@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import swal from 'sweetalert';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { User } from '@prisma/client';
+import { useRouter } from 'next/navigation';
 import { EditUserSchema } from '@/lib/validationSchemas';
 import { editUser } from '@/lib/dbActions';
 
@@ -14,14 +15,8 @@ type EditUserData = {
   role: 'USER' | 'ORGANIZER' | 'ADMIN';
 };
 
-const onSubmit = async (data: EditUserData) => {
-  await editUser(data);
-  await swal('Success', 'User role has been updated', 'success', {
-    timer: 2000,
-  });
-};
-
 const EditUserForm = ({ user }: { user: User }) => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -29,7 +24,23 @@ const EditUserForm = ({ user }: { user: User }) => {
     formState: { errors },
   } = useForm<EditUserData>({
     resolver: yupResolver(EditUserSchema),
+    defaultValues: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
   });
+
+  const onSubmit = async (data: EditUserData) => {
+    try {
+      await editUser(data);
+      await swal('Success', 'User role has been updated', 'success', { timer: 1500 });
+      router.push('/admin');
+      router.refresh();
+    } catch (err) {
+      await swal('Error', 'Failed to update user role. Please try again.', 'error');
+    }
+  };
 
   return (
     <Container className="py-3">
@@ -41,7 +52,7 @@ const EditUserForm = ({ user }: { user: User }) => {
           <Card>
             <Card.Body>
               <Form onSubmit={handleSubmit(onSubmit)}>
-                <input type="hidden" {...register('id')} value={user.id} />
+                <input type="hidden" {...register('id', { valueAsNumber: true })} />
                 <Form.Group>
                   <Form.Label>Email</Form.Label>
                   <input
