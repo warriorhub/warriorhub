@@ -14,7 +14,7 @@ const getAuthContext = async (req: NextRequest) => {
 
   return {
     userId: token?.id ?? session?.user?.id,
-    role: tokenRole ?? sessionRole,
+    randomKey: tokenRole ?? sessionRole,
   };
 };
 
@@ -68,7 +68,7 @@ export async function PUT(
     }
 
     const isOwner = String(auth.userId) === String(existing.createdById);
-    const isAdmin = auth.role === 'ADMIN';
+    const isAdmin = auth.randomKey === 'ADMIN';
 
     if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -132,7 +132,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    if (auth.role !== 'ADMIN' && Number(auth.userId) !== existing.createdById) {
+    if (auth.randomKey !== 'ADMIN' && Number(auth.userId) !== existing.createdById) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

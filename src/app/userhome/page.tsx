@@ -1,179 +1,147 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { useSession } from 'next-auth/react';
+import EventCard from '@/components/EventCard';
+import LikeButton from '@/components/LikeButton';
+
+type DBEvent = {
+  id: string;
+  name: string;
+  dateTime: string;
+  location: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  categoriesNew?: { id: number; name: string }[];
+  createdBy?: { organization?: string | null; email?: string | null };
+  potentialAttendees?: { id: string | number }[];
+};
+
+type EventForDisplay = {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  organization: string;
+  categories: string[];
+  image: string;
+  initialInterested: boolean;
+};
 
 export default function UserHome() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [events, setEvents] = useState<EventForDisplay[]>([]);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const role = (session?.user as { randomKey?: string } | null)?.randomKey;
+  const isUser = role === 'USER';
+  const userId = session?.user?.id;
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await fetch('/api/events');
+        if (!res.ok) throw new Error(`Failed to fetch events (${res.status})`);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Invalid events response');
+
+        const mapped: EventForDisplay[] = data.map((e: DBEvent) => {
+          const date = new Date(e.dateTime);
+          const formatter = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          });
+          const interested = Boolean(
+            isUser
+            && userId
+            && (e.potentialAttendees ?? []).some(
+              (att) => String(att.id) === String(userId),
+            ),
+          );
+
+          return {
+            id: e.id,
+            title: e.name,
+            date: formatter.format(date),
+            location: e.location,
+            organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
+            categories: (e.categoriesNew ?? []).map((c) => c.name),
+            image: e.imageUrl ?? '/default-event.jpg',
+            initialInterested: interested,
+          };
+        });
+
+        setEvents(mapped);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load events';
+        setError(message);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only start fetching once we know the session status so interest flags can be set correctly
+    if (status !== 'loading') {
+      fetchEvents();
+    }
+  }, [status, isUser, userId]);
+
+  if (status === 'loading' || loading) {
+    return (
+      <Container className="py-5 text-center">
+        <Spinner animation="border" role="status" />
+        <div className="mt-3">Loading events...</div>
+      </Container>
+    );
+  }
+
   return (
-    <div className="container mt-4">
+    <Container className="py-4">
+      <h2 className="text-center mb-4 text-dark">Featured Events</h2>
 
-      {/* TOP LINKS */}
-      <div className="d-flex gap-4 mb-2 justify-content-center">
-        <Link href="/events-this-week" className="fw-semibold m-0 text-dark text-decoration-none">
-          Events this week
-        </Link>
-        <Link href="/rsvps" className="fw-semibold m-0 text-dark text-decoration-none">
-          RSVPs
-        </Link>
-        <Link href="/favorites" className="fw-semibold m-0 text-dark text-decoration-none">
-          Favorites
-        </Link>
-      </div>
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
 
-      {/* FEATURED EVENTS TITLE */}
-      <h2 className="text-center mb-4 mt-2 text-dark">Featured Events</h2>
+      {!events.length && !error && (
+        <p className="text-center text-muted">No events available yet.</p>
+      )}
 
-      {/* ROW WITH CARDS + FILTER */}
-      <div className="row justify-content-center">
-
-        {/* EVENT CARDS */}
-        <div className="col-md-6 d-flex flex-row gap-4 justify-content-end">
-
-          {/* CARD 1 */}
-          <div className="card" style={{ width: '20rem' }}>
-            <Image
-              src="/hula/image (4).png"
-              width={320}
-              height={200}
-              className="card-img-top"
-              alt="Hula Show"
-            />
-            <div className="card-body">
-              <h5 className="card-title">Hula Show at Manoa Campus</h5>
-              <p className="card-text text-muted">November 20th at 1:00 PM</p>
-              <button type="button" className="btn btn-success w-100">
-                RSVP
-              </button>
-            </div>
-          </div>
-
-          {/* CARD 2 */}
-          <div className="card" style={{ width: '20rem' }}>
-            <Image
-              src="/jobfair/image (2).png"
-              width={320}
-              height={200}
-              className="card-img-top"
-              alt="Job Fair"
-            />
-            <div className="card-body">
-              <h5 className="card-title">Job Fair at Campus Center</h5>
-              <p className="card-text text-muted">December 1st at 3:00 PM</p>
-              <button type="button" className="btn btn-success w-100">
-                RSVP
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* FILTER PANEL */}
-        <div className="col-md-3 offset-md-1">
-          <div className="card p-4" style={{ maxWidth: '400px' }}>
-            <h5 className="fw-bold">Filter Events</h5>
-
-            {/* EVENT TYPE CHECKBOXES */}
-            <h6 className="mt-3">Event Type</h6>
-
-            {[
-              'Cultural',
-              'Educational',
-              'Residence Halls',
-              'Social',
-              'Sports',
-              'Wellness',
-            ].map((labelText) => {
-              const id = labelText.toLowerCase().replace(/ /g, '-');
-              return (
-                <div className="form-check" key={id}>
-                  <input className="form-check-input" type="checkbox" id={id} />
-                  <label htmlFor={id} className="form-check-label">
-                    {labelText}
-                  </label>
+      <Row xs={1} md={2} lg={3} className="g-4 align-items-start">
+        {events.map((event) => (
+          <Col key={event.id} className="d-flex flex-column gap-3">
+            <div className="w-100 d-flex flex-column gap-3">
+              <EventCard
+                title={event.title}
+                date={event.date}
+                location={event.location}
+                organization={event.organization}
+                categories={event.categories}
+                image={event.image}
+                onView={() => router.push(`/events/${event.id}`)}
+                onVisit={() => router.push(`/events/${event.id}`)}
+              />
+              {isUser && (
+                <div className="d-flex mt-2">
+                  <LikeButton eventId={event.id} initialInterested={event.initialInterested} />
                 </div>
-              );
-            })}
-
-            <label htmlFor="date-range" className="visually-hidden">Date Range</label>
-            <input
-              type="date"
-              id="date-range"
-              aria-label="Date Range"
-              className="form-control"
-            />
-
-            {/* LOCATION */}
-            <label htmlFor="location-input" className="visually-hidden">Location</label>
-            <input
-              type="text"
-              id="location-input"
-              placeholder="Enter location"
-              aria-label="Location"
-              className="form-control"
-            />
-
-          </div>
-        </div>
-
-      </div>
-
-      {/* RSVPS SECTION */}
-      <div className="mt-5">
-        <h3 className="text-xl font-bold">RSVPS:</h3>
-        <p className="text-gray-500 mt-2">No RSVPs yet.</p>
-      </div>
-
-      {/* FAVORITES SECTION */}
-      <div className="mt-5">
-        <h3 className="text-xl font-bold">Favorites:</h3>
-
-        <div className="mt-4 border p-4 rounded-xl shadow w-64">
-          <h4 className="font-semibold">Event Type</h4>
-          <div className="flex flex-col mt-2 space-y-1">
-
-            {[
-              'Cultural',
-              'Educational',
-              'Residence Halls',
-              'Social',
-              'Sports',
-              'Wellness',
-            ].map((labelText) => {
-              const id = labelText.toLowerCase().replace(/ /g, '-fav');
-              return (
-                <label htmlFor={id} key={id}>
-                  <input type="checkbox" id={id} />
-                  {' '}
-                  {labelText}
-                </label>
-              );
-            })}
-
-          </div>
-
-          <h4 className="font-semibold mt-4">Date Range</h4>
-          <input type="date" className="border rounded p-1 w-full" />
-
-          <h4 className="font-semibold mt-4">Location</h4>
-          <input
-            type="text"
-            className="border rounded p-1 w-full"
-            placeholder="Enter location"
-          />
-        </div>
-      </div>
-
-      {/* FOOTER LOGO */}
-      <footer className="mt-10 flex justify-center">
-        <Image
-          src="/uhlogo/uhmlogo.png"
-          width={150}
-          height={150}
-          alt="UH Logo"
-        />
-      </footer>
-
-    </div>
+              )}
+            </div>
+          </Col>
+        ))}
+      </Row>
+    </Container>
   );
 }
