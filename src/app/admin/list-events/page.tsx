@@ -1,32 +1,68 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-nested-ternary */
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, Table, Button, Spinner, Row, Col, Badge } from 'react-bootstrap';
+import { useSession } from 'next-auth/react';
+import { Container, Table, Button, Spinner, Row, Col, Badge, Alert } from 'react-bootstrap';
 
 type DBEvent = {
   id: string;
   name: string;
   dateTime: string;
   location: string;
-  categoriesNew?: { id: number; name: string }[]; // Changed from categories
+  categoriesNew?: { id: number; name: string }[];
   imageUrl?: string | null;
 };
 
 export default function ListEventsPage() {
   const [events, setEvents] = useState<DBEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Get user role
+  const userRole = (session?.user as { randomKey?: string })?.randomKey;
+  const isAdmin = userRole === 'ADMIN';
+
+  // Authorization check
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      router.push('/not-authorized');
+      return;
+    }
+
+    // Only admins can access this page
+    if (!isAdmin) {
+      router.push('/not-authorized');
+    }
+  }, [status, isAdmin, router]);
 
   const fetchEvents = async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await fetch('/api/events');
+
+      if (res.status === 401 || res.status === 403) {
+        router.push('/not-authorized');
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error('Failed to load events');
+      }
+
       const data = await res.json();
       setEvents(data);
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load events';
+      setError(message);
       setEvents([]);
     } finally {
       setLoading(false);
@@ -34,13 +70,55 @@ export default function ListEventsPage() {
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    // Only fetch events if user is authenticated and admin
+    if (status === 'authenticated' && isAdmin) {
+      fetchEvents();
+    }
+  }, [status, isAdmin, fetchEvents]);
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/events/${id}`, { method: 'DELETE' }); // Fixed: added parentheses
-    setEvents(prev => prev.filter(e => e.id !== id));
+    // eslint-disable-next-line no-alert
+    if (!window.confirm('Delete this event?')) return;
+
+    try {
+      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' }); // Fixed syntax
+
+      if (res.status === 401 || res.status === 403) {
+        router.push('/not-authorized');
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to delete event');
+      }
+
+      setEvents(prev => prev.filter(e => e.id !== id));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete event';
+      setError(message);
+    }
   };
+
+  // Show loading while checking authentication
+  if (status === 'loading' || loading) {
+    return (
+      <Container className="py-5 text-center">
+        <Spinner animation="border" />
+        <p className="mt-3">Loading...</p>
+      </Container>
+    );
+  }
+
+  // This shouldn't render because of the redirect, but just in case
+  if (status === 'unauthenticated' || !isAdmin) {
+    return (
+      <Container className="py-5 text-center">
+        <Spinner animation="border" />
+        <p className="mt-3">Redirecting...</p>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-5">
@@ -50,6 +128,12 @@ export default function ListEventsPage() {
           <p className="text-muted text-center">View, edit, and remove events.</p>
         </Col>
       </Row>
+
+      {error && (
+        <Alert variant="danger" className="mb-3">
+          {error}
+        </Alert>
+      )}
 
       {loading ? (
         <div className="text-center mt-5">
@@ -76,7 +160,6 @@ export default function ListEventsPage() {
                 <td>{new Date(e.dateTime).toLocaleString()}</td>
                 <td>{e.location}</td>
                 <td>
-                  {/* Display categoriesNew instead of categories */}
                   {e.categoriesNew && e.categoriesNew.length > 0 ? (
                     <div className="d-flex flex-wrap gap-1">
                       {e.categoriesNew.map(cat => (
@@ -94,7 +177,7 @@ export default function ListEventsPage() {
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => router.push(`/admin/events/${e.id}`)} // Fixed: added parentheses
+                      onClick={() => router.push(`/admin/events/${e.id}`)} // Fixed syntax
                     >
                       Edit
                     </Button>
