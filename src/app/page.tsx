@@ -18,7 +18,7 @@ export default function Home() {
   }
 
   if (session) {
-    router.push('/UserHome');
+    router.push('/userhome');
     return null; // stop rendering
   }
 
