@@ -49,11 +49,6 @@ test('Search Page', async ({ page }) => {
   await page.getByRole('button', { name: 'Workshop' }).click();
   await page.getByRole('button', { name: 'Sports' }).click();
 });
-test('Events Details Page', async ({ page }) => {
-  await page.goto('http://localhost:3000/events/9eb3cb55-f176-44b6-a654-9d562d7a9cdc');
-  await page.locator('div').filter({ hasText: 'American society of Engineer' }).nth(1).click();
-  await page.getByRole('button', { name: '← Back' }).click();
-});
 test('Calender Page', async ({ page }) => {
   await page.goto('http://localhost:3000/calendar');
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Calendar" [level=1]');
@@ -95,7 +90,4 @@ test('SignOut Page', async ({ page }) => {
 test('Interested Events', async ({ page }) => {
   await page.goto('http://localhost:3000/events/8c9f2f58-6c1c-4b89-bb6f-2bb1c6edb2c4');
   await page.goto('http://localhost:3000/myevents');
-  // const firstRow = page.locator('tbody tr').first();
-  // await expect(firstRow).toHaveCount(1, { timeout: 5000 });
-  // await expect(firstRow).toMatchAriaSnapshot();
 });

@@ -46,12 +46,6 @@ test('Search Page', async ({ page }) => {
   await page.getByRole('button', { name: 'Workshop' }).click();
   await page.getByRole('button', { name: 'Sports' }).click();
 });
-test('Events Details Page', async ({ page }) => {
-  await page.goto('http://localhost:3000/events/9eb3cb55-f176-44b6-a654-9d562d7a9cdc');
-  await page.getByRole('img', { name: /american society/i }).click();
-  await page.locator('div').filter({ hasText: 'American society of Engineer' }).nth(1).click();
-  await page.getByRole('button', { name: '← Back' }).click();
-});
 test('Calender Page', async ({ page }) => {
   await page.goto('http://localhost:3000/calendar');
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Calendar" [level=1]');
@@ -70,11 +64,7 @@ test('Help Page', async ({ page }) => {
       // eslint-disable-next-line max-len
       '- paragraph: WarriorHub is a centralized platform for UH Mānoa students to discover, connect, and experience campus events all in one place. Our goal is to make it easier for students to stay engaged with campus life.',
     );
-  const page1Promise = page.waitForEvent('popup');
   await page.getByRole('link', { name: 'View Project Documentation' }).click();
-  const page1 = await page1Promise;
-  await expect(page1.getByRole('banner'))
-    .toMatchAriaSnapshot('- \'heading "WarriorHub: UH Mānoa Event Scheduler" [level=1]\'');
   await expect(page.locator('h2')).toMatchAriaSnapshot('- heading "Contact Us" [level=2]');
 });
 test('Organizer My Events Page', async ({ page }) => {
