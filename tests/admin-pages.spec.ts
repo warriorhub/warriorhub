@@ -86,7 +86,6 @@ test('List Events and Edit Events', async ({ page }) => {
 test('Admin Home Page', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Admin page does not support WebKit yet');
   await page.goto('http://localhost:3000/admin');
-  await expect(page.getByRole('heading')).toContainText('Account List');
   await expect(page.getByRole('heading', { name: 'Account List' })).toBeVisible();
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Account List" [level=1]');
   await expect(page.getByRole('columnheader', { name: 'Email' })).toBeVisible();
