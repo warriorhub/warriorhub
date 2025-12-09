@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test.use({
   storageState: 'tests/playwright-auth-sessions/session-admin@foo.com.json',
@@ -83,17 +83,13 @@ test('List Events and Edit Events', async ({ page }) => {
     page.getByText('View, edit, and remove events.'),
   ).toMatchAriaSnapshot('- paragraph: View, edit, and remove events.');
 });
-async function login(page: Page) {
+test('Admin Home Page', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'Admin page does not support WebKit yet');
   await page.goto('http://localhost:3000/auth/signin');
   await page.fill('input[name="email"]', 'admin@foo.com');
   await page.fill('input[name="password"]', 'changeme');
   await page.getByRole('button', { name: /signin/i }).click();
-  await page.waitForURL('**/admin**'); // wildcard works with any query params
-}
-test('Admin Home Page', async ({ page, browserName }) => {
-  test.skip(browserName === 'webkit', 'Admin page does not support WebKit yet');
-  await login(page);
-  await page.goto('http://localhost:3000/admin');
+  await page.waitForURL('**/admin**');
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Account List" [level=1]');
   await expect(page.locator('thead')).toMatchAriaSnapshot('- columnheader "Email"');
   await expect(page.locator('thead')).toMatchAriaSnapshot('- columnheader "Role"');

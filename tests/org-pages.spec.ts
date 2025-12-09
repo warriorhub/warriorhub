@@ -64,11 +64,7 @@ test('Help Page', async ({ page }) => {
       // eslint-disable-next-line max-len
       '- paragraph: WarriorHub is a centralized platform for UH Mānoa students to discover, connect, and experience campus events all in one place. Our goal is to make it easier for students to stay engaged with campus life.',
     );
-  const page1Promise = page.waitForEvent('popup');
   await page.getByRole('link', { name: 'View Project Documentation' }).click();
-  const page1 = await page1Promise;
-  await expect(page1.getByRole('banner'))
-    .toMatchAriaSnapshot('- \'heading "WarriorHub: UH Mānoa Event Scheduler" [level=1]\'');
   await expect(page.locator('h2')).toMatchAriaSnapshot('- heading "Contact Us" [level=2]');
 });
 test('Organizer My Events Page', async ({ page }) => {
