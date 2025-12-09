@@ -95,7 +95,4 @@ test('SignOut Page', async ({ page }) => {
 test('Interested Events', async ({ page }) => {
   await page.goto('http://localhost:3000/events/8c9f2f58-6c1c-4b89-bb6f-2bb1c6edb2c4');
   await page.goto('http://localhost:3000/myevents');
-  // const firstRow = page.locator('tbody tr').first();
-  // await expect(firstRow).toHaveCount(1, { timeout: 5000 });
-  // await expect(firstRow).toMatchAriaSnapshot();
 });

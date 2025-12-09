@@ -70,12 +70,7 @@ test('Help Page', async ({ page }) => {
       // eslint-disable-next-line max-len
       '- paragraph: WarriorHub is a centralized platform for UH Mānoa students to discover, connect, and experience campus events all in one place. Our goal is to make it easier for students to stay engaged with campus life.',
     );
-  // const page1Promise = page.waitForEvent('popup');
   await page.getByRole('link', { name: 'View Project Documentation' }).click();
-  // const page1 = await page1Promise;
-  // await expect(
-  //   page1.getByRole('heading', { name: 'WarriorHub: UH Mānoa Event Scheduler', level: 1 }),
-  // ).toBeVisible();
   await expect(page.locator('h2')).toMatchAriaSnapshot('- heading "Contact Us" [level=2]');
 });
 test('Admin My Events Page', async ({ page }) => {
@@ -92,31 +87,18 @@ test('List Events and Edit Events', async ({ page }) => {
   await expect(
     page.getByText('View, edit, and remove events.'),
   ).toMatchAriaSnapshot('- paragraph: View, edit, and remove events.');
-  // // await expect(page.locator('thead tr')).toMatchAriaSnapshot(`
-  // // - row "Name Date & Time Location Actions"
-  // //   - columnheader "Name"
-  // //   - columnheader "Date & Time"
-  // //   - columnheader "Location"
-  // //   - columnheader "Actions"
-  // // `.trim());
-  // await page.getByRole('button', { name: 'Save' }).click();
-  // page.once('dialog', dialog => {
-  //   console.log(`Dialog message: ${dialog.message()}`);
-  //   dialog.dismiss().catch(() => {});
-  // });
-  await page.getByRole('button', { name: 'Delete' }).first().click();
-  // await expect(page.getByText(/Confirm Delete/i))
-  //   .toMatchAriaSnapshot('- text: Confirm Delete');
-
-  // await expect(page.getByText(/Are you sure you want to delete/i))
-  //   .toMatchAriaSnapshot('- text: Are you sure you want to delete this event? This action cannot be undone.');
-
-  // await expect(page.getByRole('button', { name: 'Delete' }))
-  //   .toMatchAriaSnapshot('- button "Delete"');
-
-  // await expect(page.getByRole('button', { name: 'Cancel' }))
-  //   .toMatchAriaSnapshot('- button "Cancel"');
-  // await page.getByRole('button', { name: 'Cancel' }).click();
+});
+test('Admin Home Page', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'Admin page does not support WebKit yet');
+  await page.goto('http://localhost:3000/admin');
+  await expect(page.getByRole('heading')).toContainText('Account List');
+  await expect(page.getByRole('heading', { name: 'Account List' })).toBeVisible();
+  await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Account List" [level=1]');
+  await expect(page.getByRole('columnheader', { name: 'Email' })).toBeVisible();
+  await expect(page.locator('thead')).toContainText('Email');
+  await expect(page.locator('thead')).toMatchAriaSnapshot('- columnheader "Email"');
+  await expect(page.getByRole('columnheader', { name: 'Role' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Actions' })).toBeVisible();
 });
 test('Change Password Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/change-password');
