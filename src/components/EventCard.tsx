@@ -1,3 +1,4 @@
+import React from 'react';
 import { Badge, Button, Card } from 'react-bootstrap';
 
 interface EventCardProps {
@@ -22,6 +23,7 @@ export default function EventCard({
   onVisit,
 }: EventCardProps) {
   const handleVisit = onVisit ?? onView;
+
   const isLikelyImage = (() => {
     try {
       const parsed = new URL(image);
@@ -31,6 +33,7 @@ export default function EventCard({
       return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(image || '');
     }
   })();
+
   const displayImage = isLikelyImage ? image : '/default-event.jpg';
 
   return (
@@ -68,12 +71,9 @@ export default function EventCard({
         <Card.Title className="mt-3">{title}</Card.Title>
 
         <Card.Text className="flex-grow-1">
-          {date}
-          {' '}
-          •
-          {location}
+          {date} • {location}
           <br />
-          {organization}
+          {organization || /* fallback while name is loading */ "Loading..."}
         </Card.Text>
 
         <div className="mt-3 d-flex gap-2 flex-wrap">

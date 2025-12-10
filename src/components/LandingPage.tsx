@@ -6,6 +6,18 @@ import { Container, Row, Col } from 'react-bootstrap';
 import Image from 'next/image';
 import EventCard from '@/components/EventCard';
 
+// --------------------- ADD THIS FUNCTION HERE ---------------------
+async function getOrganizationsBatch(emails: string[]) {
+  const response = await fetch(`/api/organizations?emails=${emails.join(",")}`);
+  const data = await response.json(); // expects [{ email, name }]
+  const orgMap: Record<string, string> = {};
+  data.forEach((org: { email: string; name: string }) => {
+    orgMap[org.email] = org.name;
+  });
+  return orgMap;
+}
+// -------------------------------------------------------------------
+
 type EventCardItem = {
   id: string;
   title: string;
@@ -29,6 +41,20 @@ type DBEvent = {
 const LandingPage: React.FC = () => {
   const router = useRouter();
   const [featuredEvents, setFeaturedEvents] = useState<EventCardItem[]>([]);
+
+  const [orgNames, setOrgNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function fetchOrgNames() {
+      if (featuredEvents.length === 0) return;
+
+      const emails = featuredEvents.map(event => event.organization);
+      const namesMap = await getOrganizationsBatch(emails);
+      setOrgNames(namesMap);
+    }
+
+    fetchOrgNames();
+  }, [featuredEvents]);
 
   useEffect(() => {
     const fetchFeaturedEvents = async () => {
