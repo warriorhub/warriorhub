@@ -76,9 +76,11 @@ export default function AddEventForm() {
     }
 
     try {
+      // Date object created with dateString without time zone uses user's time zone
       const dateTime = new Date(`${formState.date}T${formState.time || '00:00'}`);
 
-      // Convert to API format: [{id: 1}, {id: 2}]
+      // Convert to Prisma API format: [{id: 1}, {id: 2}]
+      // <https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries#connect-multiple-records>
       const categoriesNewForAPI = formState.categoriesNew.map(cat => ({ id: cat.id }));
 
       const res = await fetch('/api/events', {
@@ -90,7 +92,7 @@ export default function AddEventForm() {
           description: formState.description,
           dateTime,
           location: formState.location,
-          categoriesNew: categoriesNewForAPI, // Changed
+          categoriesNew: categoriesNewForAPI,
           imageUrl: formState.imageUrl || undefined,
         }),
       });
