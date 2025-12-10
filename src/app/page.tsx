@@ -18,8 +18,17 @@ export default function Home() {
   }
 
   if (session) {
+    const role = (session.user)?.randomKey;
+    if (role === 'ADMIN') {
+      router.push('/admin');
+      return null; // stop rendering
+    }
+    if (role === 'ORGANIZER') {
+      router.push('/organizer');
+      return null;
+    }
     router.push('/userhome');
-    return null; // stop rendering
+    return null;
   }
 
   return <LandingPage />;
