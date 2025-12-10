@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
+import type { CategoryNew } from '@prisma/client';
 
 export type EventForComponent = {
   id: string;
@@ -19,12 +20,6 @@ interface EditEventFormProps {
   event: EventForComponent;
   onSave?: (updatedEvent: EventForComponent) => void;
 }
-
-type CategoryNew = {
-  id: number;
-  name: string;
-  description?: string;
-};
 
 export default function EditEventForm({ event, onSave }: EditEventFormProps) {
   const router = useRouter();
