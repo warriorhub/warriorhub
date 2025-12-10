@@ -124,7 +124,7 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
               <div>
                 Hosted by
                 {' '}
-                {event.createdBy?.organization || event.createdBy?.email || 'Unknown'}
+                {event.createdBy?.organization ?? event.createdBy?.email ?? 'Unknown'}
               </div>
               <div>{event.createdBy.email}</div>
             </div>
