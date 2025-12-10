@@ -17,9 +17,6 @@ jobs:
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      # CRITICAL: Delete old session files
-      - name: Clear old session files
-        run: rm -rf tests/playwright-auth-sessions/*.json || true
       - name: Run ESLint
         run: npm run lint
       - name: Run Playwright tests
