@@ -1,9 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-nested-ternary */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Container, Table, Button, Spinner, Row, Col, Badge, Alert } from 'react-bootstrap';
@@ -43,7 +42,8 @@ export default function ListEventsPage() {
     }
   }, [status, isAdmin, router]);
 
-  const fetchEvents = async () => {
+  // Wrap fetchEvents in useCallback to prevent infinite loop
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -67,21 +67,21 @@ export default function ListEventsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]); // Only depends on router
 
   useEffect(() => {
     // Only fetch events if user is authenticated and admin
     if (status === 'authenticated' && isAdmin) {
       fetchEvents();
     }
-  }, [status, isAdmin, fetchEvents]);
+  }, [status, isAdmin, fetchEvents]); // Now safe to include fetchEvents
 
   const handleDelete = async (id: string) => {
     // eslint-disable-next-line no-alert
     if (!window.confirm('Delete this event?')) return;
 
     try {
-      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' }); // Fixed syntax
+      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' });
 
       if (res.status === 401 || res.status === 403) {
         router.push('/not-authorized');
@@ -101,11 +101,11 @@ export default function ListEventsPage() {
   };
 
   // Show loading while checking authentication
-  if (status === 'loading' || loading) {
+  if (status === 'loading') {
     return (
       <Container className="py-5 text-center">
         <Spinner animation="border" />
-        <p className="mt-3">Loading...</p>
+        <p className="mt-3">Checking authorization...</p>
       </Container>
     );
   }
@@ -177,7 +177,7 @@ export default function ListEventsPage() {
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => router.push(`/admin/events/${e.id}`)} // Fixed syntax
+                      onClick={() => router.push(`/admin/events/${e.id}`)}
                     >
                       Edit
                     </Button>
