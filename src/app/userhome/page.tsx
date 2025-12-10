@@ -41,6 +41,18 @@ export default function UserHome() {
   const isUser = role === 'USER';
   const userId = session?.user?.id;
 
+  // Guard: only USER role may access this page/likes
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      router.replace('/auth/signin?callbackUrl=/userhome');
+      return;
+    }
+    if (status === 'authenticated' && role && role !== 'USER') {
+      router.replace('/not-authorized');
+    }
+  }, [status, role, router]);
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
