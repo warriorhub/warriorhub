@@ -11,7 +11,7 @@ interface EventDetailsPageProps {
 }
 
 export default async function EventDetailsPage({ params }: EventDetailsPageProps) {
-  const event = await (prisma as any).event.findUnique({
+  const event = await prisma.event.findUnique({
     where: { id: params.id },
     include: {
       createdBy: {
