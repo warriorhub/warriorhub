@@ -77,6 +77,7 @@ export default function AddEventForm() {
 
     try {
       const dateTime = new Date(`${formState.date}T${formState.time || '00:00'}`);
+
       // Convert to API format: [{id: 1}, {id: 2}]
       const categoriesNewForAPI = formState.categoriesNew.map(cat => ({ id: cat.id }));
 
