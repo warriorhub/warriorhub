@@ -16,11 +16,11 @@ export default async function EditEventPage({ params }: { params: { id: string }
   }
 
   // Get user role and ID
-  const userRole = (session.user as { randomKey?: string })?.randomKey;
+  const userRole = session.user?.randomKey;
   const userId = session.user.id;
 
   // Check if user is a regular USER (not ORGANIZER or ADMIN)
-  if (userRole === 'USER') {
+  if (!userRole || userRole === 'USER') {
     redirect('/not-authorized');
   }
 
