@@ -71,9 +71,11 @@ export default function EventCard({
         <Card.Title className="mt-3">{title}</Card.Title>
 
         <Card.Text className="flex-grow-1">
-          {date} • {location}
+          {date}
+          •
+          {location}
           <br />
-          {organization || /* fallback while name is loading */ "Loading..."}
+          {organization || /* fallback while name is loading */ 'Loading...'}
         </Card.Text>
 
         <div className="mt-3 d-flex gap-2 flex-wrap">

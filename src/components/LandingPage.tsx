@@ -8,7 +8,7 @@ import EventCard from '@/components/EventCard';
 
 // --------------------- ADD THIS FUNCTION HERE ---------------------
 async function getOrganizationsBatch(emails: string[]) {
-  const response = await fetch(`/api/organizations?emails=${emails.join(",")}`);
+  const response = await fetch(`/api/organizations?emails=${emails.join('', '')}`);
   const data = await response.json(); // expects [{ email, name }]
   const orgMap: Record<string, string> = {};
   data.forEach((org: { email: string; name: string }) => {
@@ -174,7 +174,7 @@ const LandingPage: React.FC = () => {
                     title={event.title}
                     date={event.date}
                     location={event.location}
-                    organization={event.organization}
+                    organization={orgNames[event.organization] || event.organization}
                     categories={event.categories}
                     image={event.image}
                     onView={() => goToEvent(event.id)}
