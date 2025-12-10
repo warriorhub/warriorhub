@@ -3,12 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
-
-type CategoryNew = {
-  id: number;
-  name: string;
-  description?: string;
-};
+import type { CategoryNew } from '@prisma/client';
 
 export default function AddEventForm() {
   const router = useRouter();
