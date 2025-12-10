@@ -22,8 +22,8 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
         env:
-          POSTGRES_PRISMA_URL: ${{ secrets.DATABASE_PROD_URL }}
-          POSTGRES_URL_NON_POOLING: ${{ secrets.DATABASE_PROD_URL }}
+          POSTGRES_PRISMA_URL: ${{ secrets.DATABASE_PREVIEW_URL }}
+          POSTGRES_URL_NON_POOLING: ${{ secrets.DATABASE_PREVIEW_URL }}
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: test-secret-key-for-ci-must-be-at-least-32-characters-long
       - uses: actions/upload-artifact@v4
