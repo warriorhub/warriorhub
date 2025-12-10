@@ -11,7 +11,7 @@ interface EventDetailsPageProps {
 }
 
 export default async function EventDetailsPage({ params }: EventDetailsPageProps) {
-  const event = await (prisma as any).event.findUnique({
+  const event = await prisma.event.findUnique({
     where: { id: params.id },
     include: {
       createdBy: {
@@ -124,7 +124,7 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
               <div>
                 Hosted by
                 {' '}
-                {event.createdBy?.organization || event.createdBy?.email || 'Unknown'}
+                {event.createdBy?.organization ?? event.createdBy?.email ?? 'Unknown'}
               </div>
               <div>{event.createdBy.email}</div>
             </div>
