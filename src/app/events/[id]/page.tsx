@@ -56,11 +56,11 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
   const date = new Date(event.dateTime);
   const dateDisplay = date.toLocaleDateString(
     'en-US',
-    { month: 'long', day: 'numeric', year: 'numeric' },
+    { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Pacific/Honolulu' },
   );
   const timeDisplay = date.toLocaleTimeString(
     'en-US',
-    { hour: 'numeric', minute: '2-digit' },
+    { hour: 'numeric', minute: '2-digit', timeZone: 'Pacific/Honolulu' },
   );
 
   const displayImage = (() => {
@@ -115,9 +115,7 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
             <div className="mb-3 text-muted">
               <div>
                 {dateDisplay}
-                {' '}
-                at
-                {' '}
+                {' at '}
                 {timeDisplay}
               </div>
               <div>{event.location}</div>
