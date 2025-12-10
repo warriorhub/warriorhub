@@ -8,12 +8,17 @@ import authOptions from '@/lib/authOptions';
 export async function GET() {
   try {
     const events = await prisma.event.findMany({
-      orderBy: { dateTime: 'asc' },
       include: {
-        createdBy: true,
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            organization: true, // Add this
+          },
+        },
         categoriesNew: true,
-        potentialAttendees: true,
       },
+      orderBy: { dateTime: 'desc' },
     });
 
     return NextResponse.json(events);
