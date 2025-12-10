@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-
 'use client';
 
 import {
@@ -58,7 +56,7 @@ export default function MyEventsPage() {
   const itemsPerPage = 6;
 
   // Get user role
-  const role = (session?.user as { randomKey?: string } | null)?.randomKey;
+  const role = session?.user?.randomKey;
   const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
   const isUser = role === 'USER';
 
@@ -268,7 +266,7 @@ export default function MyEventsPage() {
               </Button>
               <Dropdown>
                 <Dropdown.Toggle variant="outline-secondary" id="display-dropdown">
-                  DISPLAY OPTION ▼
+                  DISPLAY OPTION
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => setDisplayMode('table')}>Table View</Dropdown.Item>
@@ -455,7 +453,8 @@ export default function MyEventsPage() {
                         date={event.startDate}
                         location={event.venue || '—'}
                         organization={event.organizer}
-                        categories={event.categoriesNew?.map(c => c.name) || (event.category !== '—' ? [event.category] : [])}
+                        categories={event.categoriesNew?.map(c => c.name)
+                          || (event.category !== '—' ? [event.category] : [])}
                         image={event.image || '/default-event.jpg'}
                         onView={() => router.push(`/events/${event.id}`)}
                         onVisit={() => router.push(`/events/${event.id}`)}
