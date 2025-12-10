@@ -40,14 +40,12 @@ export default async function EditEventPage({ params }: { params: { id: string }
   });
 
   if (!event) return notFound();
-
-  // Authorization check:
-  // - Admins can edit any event
-  // - Organizers can only edit their own events
-  const isAdmin = userRole === 'ADMIN';
-  const isOrganizer = userRole === 'ORGANIZER';
-
-  if (isOrganizer && !isAdmin) {
+  /*
+    Authorization check:
+    - Admins can edit any event
+    - Organizers can only edit their own events
+   */
+  if (userRole !== 'ADMIN') {
     const eventOwnerId = String(event.createdById);
     if (eventOwnerId !== String(userId)) {
       // Organizer trying to edit someone else's event
