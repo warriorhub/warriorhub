@@ -75,6 +75,7 @@ export default function EventCard({
 
         <Card.Text className="flex-grow-1">
           {date}
+          <br />
           {location}
           <br />
           {organization}
