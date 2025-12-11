@@ -57,8 +57,15 @@ export default function MyEventsPage() {
 
   // Get user role
   const role = session?.user?.randomKey;
-  const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
+  const isOrganizer = role === 'ORGANIZER';
   const isUser = role === 'USER';
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (session?.user?.randomKey === 'ADMIN') {
+      router.replace('/admin/list-events');
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -81,8 +88,9 @@ export default function MyEventsPage() {
           eventsToShow = data.filter((e) => e.potentialAttendees?.some(
             (u: any) => String(u.id) === String(session.user.id),
           ));
-        } else {
-          // For ORGANIZERS/ADMINS: Show created events
+        }
+        if (isOrganizer) {
+          // For ORGANIZERS: Show created events
           eventsToShow = data.filter(
             (e) => String(e.createdById ?? e.createdBy?.id) === String(session.user.id),
           );
@@ -129,7 +137,7 @@ export default function MyEventsPage() {
     };
 
     fetchEvents();
-  }, [status, session?.user?.id, isUser]);
+  }, [status, session?.user?.id, isUser, isOrganizer]);
 
   const currentEvents = events.filter((event) => {
     const eventDate = new Date(event.startDate);

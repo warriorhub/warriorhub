@@ -24,6 +24,7 @@ const AdminPage = async () => {
             <Table striped bordered hover>
               <thead>
                 <tr>
+                  <th>Organization</th>
                   <th>Email</th>
                   <th>Role</th>
                   <th>Actions</th>
