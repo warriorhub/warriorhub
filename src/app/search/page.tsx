@@ -45,6 +45,7 @@ const SearchEvents = () => {
   const [availableCategories, setAvailableCategories] = useState<CategoryNew[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventForComponent | null>(null);
+  const [loadError, setLoadError] = useState<string>('');
 
   const [searchFilters, setSearchFilters] = useState({
     name: '',
@@ -64,9 +65,17 @@ const SearchEvents = () => {
   // Fetch available categories
   useEffect(() => {
     fetch('/api/categories')
-      .then(res => res.json())
-      .then(data => setAvailableCategories(data))
-      .catch(err => console.error('Error fetching categories:', err));
+      .then(async res => {
+        if (!res.ok) throw new Error(`Categories request failed: ${res.status}`);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Invalid categories response');
+        setAvailableCategories(data);
+      })
+      .catch(err => {
+        console.error('Error fetching categories:', err);
+        setAvailableCategories([]);
+        setLoadError('Failed to load categories. Please try again.');
+      });
   }, []);
 
   // Fetch events from DB
@@ -92,9 +101,11 @@ const SearchEvents = () => {
         }));
 
         setEvents(mapped);
+        setLoadError('');
       } catch (error) {
         console.error('Error loading events:', error);
         setEvents([]);
+        setLoadError('Failed to load events. Please try again.');
       }
     };
 
