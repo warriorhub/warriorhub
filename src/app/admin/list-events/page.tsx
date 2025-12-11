@@ -14,6 +14,10 @@ type DBEvent = {
   location: string;
   categoriesNew?: { id: number; name: string }[];
   imageUrl?: string | null;
+  createdBy?: {
+    organization?: string | null;
+    email?: string | null;
+  };
 };
 
 export default function ListEventsPage() {
@@ -146,7 +150,8 @@ export default function ListEventsPage() {
         <Table striped hover bordered responsive className="shadow-sm">
           <thead className="table-light">
             <tr>
-              <th>Name</th>
+              <th>Event</th>
+              <th>Organization</th>
               <th>Date & Time</th>
               <th>Location</th>
               <th>Categories</th>
@@ -157,6 +162,7 @@ export default function ListEventsPage() {
             {events.map(e => (
               <tr key={e.id}>
                 <td className="fw-semibold">{e.name}</td>
+                <td>{e.createdBy?.organization || e.createdBy?.email || 'Unknown'}</td>
                 <td>{new Date(e.dateTime).toLocaleString()}</td>
                 <td>{e.location}</td>
                 <td>

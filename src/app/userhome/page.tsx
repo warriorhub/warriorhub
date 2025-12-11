@@ -58,7 +58,7 @@ export default function UserHome() {
       try {
         setLoading(true);
         setError('');
-        const res = await fetch('/api/events');
+        const res = await fetch('/api/events?futureOnly=true');
         if (!res.ok) throw new Error(`Failed to fetch events (${res.status})`);
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid events response');

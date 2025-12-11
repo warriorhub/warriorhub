@@ -80,7 +80,7 @@ const SearchEvents = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('/api/events');
+        const res = await fetch('/api/events?futureOnly=true');
         if (!res.ok) throw new Error(`Events request failed: ${res.status}`);
 
         const data = await res.json();

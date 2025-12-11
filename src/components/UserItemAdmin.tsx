@@ -2,8 +2,9 @@ import { User } from '@prisma/client';
 import Link from 'next/link';
 
 /* Renders a single row in the User Admin table. See list/page.tsx. */
-const UserItemAdmin = ({ id, email, role }: User) => (
+const UserItemAdmin = ({ organization, id, email, role }: User) => (
   <tr>
+    <td>{organization ?? 'N/A'}</td>
     <td>{email}</td>
     <td>{role}</td>
     <td>
