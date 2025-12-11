@@ -136,13 +136,6 @@ const SearchEvents = () => {
     });
   };
 
-  // Helper function for button colors
-  const getCategoryButtonColor = (categoryId: number, index: number) => {
-    if (searchFilters.categoryId === categoryId) return 'rgb(0,150,136)'; // selected
-    if (index % 2 === 0) return 'rgb(42,78,223)'; // even
-    return 'rgb(255,99,71)'; // odd
-  };
-
   // Filter events based on search criteria
   const filteredEvents = events.filter((event) => {
     const matchesName = event.title.toLowerCase().includes(searchFilters.name.toLowerCase());
@@ -220,9 +213,6 @@ const SearchEvents = () => {
 
         <Row>
           <Col>
-            <Button variant="primary" className="me-2">
-              Search
-            </Button>
             <Button variant="secondary" className="me-2" onClick={handleReset}>
               Reset Filters
             </Button>
@@ -232,11 +222,11 @@ const SearchEvents = () => {
 
       <Col className="mb-4">
         <h5>Categories</h5>
-        {availableCategories.map((c, i) => (
+        {availableCategories.map((c) => (
           <Button
             key={c.id}
             style={{
-              backgroundColor: getCategoryButtonColor(c.id, i),
+              backgroundColor: searchFilters.categoryId === c.id ? '#0056b3' : '#007bff',
               color: 'white',
               border: 'none',
             }}

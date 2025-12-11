@@ -12,9 +12,10 @@ import {
 } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { FileText, Check, Trash, HeartFill } from 'react-bootstrap-icons';
+import { Trash, HeartFill } from 'react-bootstrap-icons';
 import { useSession } from 'next-auth/react';
 import EventCard from '@/components/EventCard';
+import LikeButton from '@/components/LikeButton';
 
 type EventTableRow = {
   id: string;
@@ -23,7 +24,6 @@ type EventTableRow = {
   organizer: string;
   venue: string;
   category: string;
-  isRecurring: boolean;
   startDate: string;
   startTime: string;
   endDate: string;
@@ -31,14 +31,6 @@ type EventTableRow = {
   categoriesNew?: { id: number; name: string }[];
   image?: string;
   isInterested?: boolean;
-};
-
-// StatusIcon component
-const StatusIcon = ({ eventStatus }: { eventStatus: string }) => {
-  if (eventStatus === 'attending' || eventStatus === 'attended') {
-    return <Check size={24} className="text-success" />;
-  }
-  return <FileText size={24} className="text-muted" />;
 };
 
 export default function MyEventsPage() {
@@ -49,8 +41,6 @@ export default function MyEventsPage() {
   const [events, setEvents] = useState<EventTableRow[]>([]);
   const [error, setError] = useState<string>('');
   const now = useMemo(() => new Date(), []);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [removingId, setRemovingId] = useState<string | null>(null);
   const [displayMode, setDisplayMode] = useState<'table' | 'card'>('table');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -115,7 +105,6 @@ export default function MyEventsPage() {
             organizer: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
             venue: e.location,
             category: e.categoriesNew?.[0]?.name ?? '—',
-            isRecurring: false,
             startDate: dateFormatter.format(start),
             startTime: timeFormatter.format(start),
             endDate: dateFormatter.format(end),
@@ -178,9 +167,6 @@ export default function MyEventsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm('Delete this event?')) return;
-    setDeletingId(id);
     try {
       const res = await fetch(`/api/events/${id}`, {
         method: 'DELETE',
@@ -194,30 +180,11 @@ export default function MyEventsPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to delete event';
       setError(message);
-    } finally {
-      setDeletingId(null);
     }
   };
 
   const handleRemoveInterest = async (id: string) => {
-    setRemovingId(id);
-    try {
-      const res = await fetch(`/api/events/${id}/like`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to remove interest');
-      }
-      // Remove from list
-      setEvents((prev) => prev.filter((e) => e.id !== id));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to remove interest';
-      setError(message);
-    } finally {
-      setRemovingId(null);
-    }
+    setEvents((prev) => prev.filter((e) => e.id !== id));
   };
 
   return (
@@ -322,12 +289,10 @@ export default function MyEventsPage() {
               <Table hover responsive className="bg-white">
                 <thead style={{ backgroundColor: '#f8f9fa' }}>
                   <tr>
-                    <th style={{ fontWeight: '600', color: '#6c757d' }}>STATUS</th>
                     <th style={{ fontWeight: '600', color: '#6c757d' }}>TITLE</th>
                     <th style={{ fontWeight: '600', color: '#6c757d' }}>ORGANIZER</th>
                     <th style={{ fontWeight: '600', color: '#6c757d' }}>VENUE</th>
                     <th style={{ fontWeight: '600', color: '#6c757d' }}>CATEGORY</th>
-                    <th style={{ fontWeight: '600', color: '#6c757d' }}>RECURRING?</th>
                     <th style={{ fontWeight: '600', color: '#6c757d' }}>START DATE</th>
                     <th style={{ fontWeight: '600', color: '#6c757d' }}>END DATE</th>
                   </tr>
@@ -336,13 +301,6 @@ export default function MyEventsPage() {
                   {paginatedEvents.length > 0 ? (
                     paginatedEvents.map((event) => (
                       <tr key={event.id}>
-                        <td className="text-center">
-                          {event.isInterested ? (
-                            <HeartFill size={24} className="text-danger" />
-                          ) : (
-                            <StatusIcon eventStatus={event.status} />
-                          )}
-                        </td>
                         <td>
                           <div>
                             <strong>{event.title}</strong>
@@ -350,26 +308,6 @@ export default function MyEventsPage() {
                               <a href={`/events/${event.id}`} className="text-primary me-2">
                                 View
                               </a>
-                              {/* Show Edit/Delete for Organizers, Remove Interest for Users */}
-                              {isOrganizer && (
-                                <>
-                                  |
-                                  <a href={`/events/${event.id}/edit`} className="text-primary ms-2 me-2">
-                                    Edit
-                                  </a>
-                                  |
-                                  <button
-                                    type="button"
-                                    className="btn btn-link p-0 ms-2 text-danger"
-                                    onClick={() => handleDelete(event.id)}
-                                    disabled={deletingId === event.id}
-                                  >
-                                    <Trash size={16} />
-                                    {' '}
-                                    {deletingId === event.id ? 'Deleting...' : 'Delete'}
-                                  </button>
-                                </>
-                              )}
                               {isUser && (
                                 <>
                                   |
@@ -377,11 +315,31 @@ export default function MyEventsPage() {
                                     type="button"
                                     className="btn btn-link p-0 ms-2 text-danger"
                                     onClick={() => handleRemoveInterest(event.id)}
-                                    disabled={removingId === event.id}
                                   >
                                     <HeartFill size={16} />
+                                    <span>Remove Interest</span>
+                                  </button>
+                                </>
+                              )}
+                              {isOrganizer && (
+                                <>
+                                  |
+                                  <a
+                                    href={`/events/${event.id}/edit`}
+                                    className="text-primary ms-2"
+                                  >
+                                    Edit
+                                  </a>
+                                  {' '}
+                                  |
+                                  <button
+                                    type="button"
+                                    className="btn btn-link p-0 ms-2 text-danger"
+                                    onClick={() => handleDelete(event.id)}
+                                  >
+                                    <Trash size={14} />
                                     {' '}
-                                    {removingId === event.id ? 'Removing...' : 'Remove Interest'}
+                                    Delete
                                   </button>
                                 </>
                               )}
@@ -390,8 +348,11 @@ export default function MyEventsPage() {
                         </td>
                         <td>{event.organizer}</td>
                         <td>{event.venue || '—'}</td>
-                        <td>{event.category}</td>
-                        <td>{event.isRecurring ? 'Yes' : 'No'}</td>
+                        <td>
+                          {event.categoriesNew && event.categoriesNew.length > 0
+                            ? event.categoriesNew.map(c => c.name).join(', ')
+                            : '—'}
+                        </td>
                         <td>
                           {event.startDate}
                           {event.startTime && (
@@ -466,40 +427,35 @@ export default function MyEventsPage() {
                         image={event.image || '/default-event.jpg'}
                         onView={() => router.push(`/events/${event.id}`)}
                         onVisit={() => router.push(`/events/${event.id}`)}
+                        likeButton={
+                          isUser ? (
+                            <LikeButton
+                              eventId={event.id}
+                              initialInterested
+                              onUnlike={() => handleRemoveInterest(event.id)}
+                            />
+                          ) : null
+                        }
+                        adminActions={
+                          isOrganizer ? (
+                            <>
+                              <a href={`/events/${event.id}/edit`} className="text-primary">
+                                Edit
+                              </a>
+                              <button
+                                type="button"
+                                className="btn btn-link p-0 text-danger"
+                                onClick={() => handleDelete(event.id)}
+                              >
+                                <Trash size={16} />
+                                {' '}
+                                Delete
+                              </button>
+                            </>
+                          ) : null
+                        }
                       />
                     </div>
-                    {/* Show Edit/Delete for Organizers, Remove Interest for Users */}
-                    {isOrganizer && (
-                      <div className="mt-2 d-flex gap-3 position-relative">
-                        <a href={`/events/${event.id}/edit`} className="text-primary">
-                          Edit
-                        </a>
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 text-danger"
-                          onClick={() => handleDelete(event.id)}
-                          disabled={deletingId === event.id}
-                        >
-                          <Trash size={16} />
-                          {' '}
-                          {deletingId === event.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </div>
-                    )}
-                    {isUser && (
-                      <div className="mt-2">
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 text-danger"
-                          onClick={() => handleRemoveInterest(event.id)}
-                          disabled={removingId === event.id}
-                        >
-                          <HeartFill size={16} />
-                          {' '}
-                          {removingId === event.id ? 'Removing...' : 'Remove Interest'}
-                        </button>
-                      </div>
-                    )}
                   </Col>
                 ))
               ) : (
