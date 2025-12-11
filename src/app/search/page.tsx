@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 import { formatHstShortDate } from '@/lib/time';
 import EventCard from '../../components/EventCard';
 import EventDetailsForm from '../../components/EventDetailsForm';
@@ -164,6 +164,16 @@ const SearchEvents = () => {
       <Row className="mb-4">
         <h1 className="mb-3">Search Events</h1>
       </Row>
+
+      {loadError && (
+        <Row className="mb-3">
+          <Col>
+            <Alert variant="danger" className="mb-0">
+              {loadError}
+            </Alert>
+          </Col>
+        </Row>
+      )}
 
       <Form className="mb-4 p-3 border rounded shadow-sm" onSubmit={(e) => e.preventDefault()}>
         <Row className="mb-3">
