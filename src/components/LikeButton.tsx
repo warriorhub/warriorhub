@@ -1,3 +1,5 @@
+/* eslint-disable react/require-default-props */
+
 'use client';
 
 import { useState } from 'react';
@@ -7,9 +9,10 @@ import { HeartFill, Heart } from 'react-bootstrap-icons';
 interface LikeButtonProps {
   eventId: string;
   initialInterested: boolean;
+  onUnlike?: () => void;
 }
 
-export default function LikeButton({ eventId, initialInterested }: LikeButtonProps) {
+export default function LikeButton({ eventId, initialInterested, onUnlike = undefined }: LikeButtonProps) {
   const [interested, setInterested] = useState(initialInterested);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -21,9 +24,7 @@ export default function LikeButton({ eventId, initialInterested }: LikeButtonPro
     try {
       const response = await fetch(`/api/events/${eventId}/like`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (!response.ok) {
@@ -33,6 +34,11 @@ export default function LikeButton({ eventId, initialInterested }: LikeButtonPro
 
       const data = await response.json();
       setInterested(data.interested);
+
+      // 🔥 Trigger parent refresh ONLY when unliking
+      if (!data.interested && onUnlike) {
+        onUnlike();
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update interest';
       setError(message);
@@ -42,7 +48,6 @@ export default function LikeButton({ eventId, initialInterested }: LikeButtonPro
     }
   };
 
-  // Helper function to determine button text (avoids nested ternary)
   const getButtonText = () => {
     if (isLoading) return 'Loading...';
     if (interested) return 'Interested';
@@ -60,6 +65,7 @@ export default function LikeButton({ eventId, initialInterested }: LikeButtonPro
         {interested ? <HeartFill size={20} /> : <Heart size={20} />}
         {getButtonText()}
       </Button>
+
       {error && (
         <div className="text-danger small mt-2">
           {error}
