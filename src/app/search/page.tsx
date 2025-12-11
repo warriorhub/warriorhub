@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
+import { formatHstShortDate } from '@/lib/time';
 import EventCard from '../../components/EventCard';
 import EventDetailsForm from '../../components/EventDetailsForm';
 
@@ -36,15 +37,7 @@ type EventForComponent = {
   image: string;
 };
 
-const isSameDate = (date1: string, date2: string) => {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-  return (
-    d1.getUTCFullYear() === d2.getUTCFullYear()
-    && d1.getUTCMonth() === d2.getUTCMonth()
-    && d1.getUTCDate() === d2.getUTCDate()
-  );
-};
+const isSameDate = (date1: string, date2: string) => formatHstShortDate(date1) === formatHstShortDate(date2);
 
 const SearchEvents = () => {
   const router = useRouter();
@@ -52,6 +45,7 @@ const SearchEvents = () => {
   const [availableCategories, setAvailableCategories] = useState<CategoryNew[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventForComponent | null>(null);
+  const [loadError, setLoadError] = useState<string>('');
 
   const [searchFilters, setSearchFilters] = useState({
     name: '',
@@ -71,9 +65,17 @@ const SearchEvents = () => {
   // Fetch available categories
   useEffect(() => {
     fetch('/api/categories')
-      .then(res => res.json())
-      .then(data => setAvailableCategories(data))
-      .catch(err => console.error('Error fetching categories:', err));
+      .then(async res => {
+        if (!res.ok) throw new Error(`Categories request failed: ${res.status}`);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Invalid categories response');
+        setAvailableCategories(data);
+      })
+      .catch(err => {
+        console.error('Error fetching categories:', err);
+        setAvailableCategories([]);
+        setLoadError('Failed to load categories. Please try again.');
+      });
   }, []);
 
   // Fetch events from DB
@@ -86,25 +88,24 @@ const SearchEvents = () => {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
-        const mapped: EventForComponent[] = data.map((e: DBEvent) => {
-          const [year, month, day] = e.dateTime.split('T')[0].split('-');
-          return {
-            id: e.id,
-            title: e.name,
-            dateTime: e.dateTime,
-            date: `${month}/${day}/${year}`,
-            location: e.location,
-            organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
-            categoriesNew: e.categoriesNew || [], // Changed
-            description: e.description ?? '',
-            image: e.imageUrl ?? '/default-event.jpg',
-          };
-        });
+        const mapped: EventForComponent[] = data.map((e: DBEvent) => ({
+          id: e.id,
+          title: e.name,
+          dateTime: e.dateTime,
+          date: formatHstShortDate(e.dateTime),
+          location: e.location,
+          organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
+          categoriesNew: e.categoriesNew || [], // Changed
+          description: e.description ?? '',
+          image: e.imageUrl ?? '/default-event.jpg',
+        }));
 
         setEvents(mapped);
+        setLoadError('');
       } catch (error) {
         console.error('Error loading events:', error);
         setEvents([]);
+        setLoadError('Failed to load events. Please try again.');
       }
     };
 
@@ -156,6 +157,16 @@ const SearchEvents = () => {
       <Row className="mb-4">
         <h1 className="mb-3">Search Events</h1>
       </Row>
+
+      {loadError && (
+        <Row className="mb-3">
+          <Col>
+            <Alert variant="danger" className="mb-0">
+              {loadError}
+            </Alert>
+          </Col>
+        </Row>
+      )}
 
       <Form className="mb-4 p-3 border rounded shadow-sm" onSubmit={(e) => e.preventDefault()}>
         <Row className="mb-3">

@@ -3,8 +3,7 @@ import { getServerSession } from 'next-auth';
 import EditEventForm, { type EventForComponent } from '@/components/EditEventForm';
 import { prisma } from '@/lib/prisma';
 import authOptions from '@/lib/authOptions';
-
-const formatDateTimeLocal = (date: Date) => date.toISOString().slice(0, 16);
+import { toDateTimeLocalHst } from '@/lib/time';
 
 export default async function EditEventPage({ params }: { params: { id: string } }) {
   // Get session
@@ -58,7 +57,7 @@ export default async function EditEventPage({ params }: { params: { id: string }
   const mapped: EventForComponent = {
     id: event.id,
     title: event.name,
-    dateTime: formatDateTimeLocal(new Date(event.dateTime)),
+    dateTime: toDateTimeLocalHst(event.dateTime),
     location: event.location,
     organization: event.createdBy?.organization || event.createdBy?.email || 'Unknown',
     categoriesNew: event.categoriesNew ?? [],

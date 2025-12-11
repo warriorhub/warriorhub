@@ -6,7 +6,7 @@ import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import { useSession } from 'next-auth/react';
 import EventCard from '@/components/EventCard';
 import LikeButton from '@/components/LikeButton';
-import Image from 'next/image';
+import { formatHstDate, formatHstTime } from '@/lib/time';
 
 type DBEvent = {
   id: string;
@@ -69,16 +69,8 @@ export default function UserHome() {
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
         const mapped: EventForDisplay[] = data.map((e: DBEvent) => {
-          const date = new Date(e.dateTime);
-          const formatter = new Intl.DateTimeFormat('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-          });
-
-          const interested = isUser
+          const interested = Boolean(
+            isUser
             && userId
             && (e.potentialAttendees ?? []).some(
               (att) => String(att.id) === String(userId),
@@ -87,7 +79,7 @@ export default function UserHome() {
           return {
             id: e.id,
             title: e.name,
-            date: formatter.format(date),
+            date: `${formatHstDate(e.dateTime)} ${formatHstTime(e.dateTime)}`,
             location: e.location,
             organization:
               e.createdBy?.organization || e.createdBy?.email || 'Unknown',
