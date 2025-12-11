@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FileText, Check, Trash, HeartFill } from 'react-bootstrap-icons';
 import { useSession } from 'next-auth/react';
 import EventCard from '@/components/EventCard';
+import { formatHstDate, formatHstTime } from '@/lib/time';
 
 type EventTableRow = {
   id: string;
@@ -99,15 +100,6 @@ export default function MyEventsPage() {
         const mapped: EventTableRow[] = eventsToShow.map((e) => {
           const start = new Date(e.dateTime);
           const end = new Date(start.getTime() + 60 * 60 * 1000);
-          const dateFormatter = new Intl.DateTimeFormat('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-          });
-          const timeFormatter = new Intl.DateTimeFormat('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-          });
           return {
             id: e.id,
             status: 'registered',
@@ -116,10 +108,10 @@ export default function MyEventsPage() {
             venue: e.location,
             category: e.categoriesNew?.[0]?.name ?? '—',
             isRecurring: false,
-            startDate: dateFormatter.format(start),
-            startTime: timeFormatter.format(start),
-            endDate: dateFormatter.format(end),
-            endTime: timeFormatter.format(end),
+            startDate: formatHstDate(start),
+            startTime: formatHstTime(start),
+            endDate: formatHstDate(end),
+            endTime: formatHstTime(end),
             categoriesNew: e.categoriesNew ?? [],
             image: e.imageUrl ?? '/default-event.jpg',
             isInterested: isUser,

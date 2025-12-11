@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
+import { toUtcFromDateAndTime } from '@/lib/time';
 
 type CategoryNew = {
   id: number;
@@ -76,7 +77,7 @@ export default function AddEventForm() {
     }
 
     try {
-      const dateTime = new Date(`${formState.date}T${formState.time || '00:00'}`);
+      const dateTime = toUtcFromDateAndTime(formState.date, formState.time);
 
       // Convert to API format: [{id: 1}, {id: 2}]
       const categoriesNewForAPI = formState.categoriesNew.map(cat => ({ id: cat.id }));

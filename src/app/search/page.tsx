@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { formatHstShortDate } from '@/lib/time';
 import EventCard from '../../components/EventCard';
 import EventDetailsForm from '../../components/EventDetailsForm';
 
@@ -36,15 +37,7 @@ type EventForComponent = {
   image: string;
 };
 
-const isSameDate = (date1: string, date2: string) => {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-  return (
-    d1.getUTCFullYear() === d2.getUTCFullYear()
-    && d1.getUTCMonth() === d2.getUTCMonth()
-    && d1.getUTCDate() === d2.getUTCDate()
-  );
-};
+const isSameDate = (date1: string, date2: string) => formatHstShortDate(date1) === formatHstShortDate(date2);
 
 const SearchEvents = () => {
   const router = useRouter();
@@ -87,12 +80,11 @@ const SearchEvents = () => {
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
         const mapped: EventForComponent[] = data.map((e: DBEvent) => {
-          const [year, month, day] = e.dateTime.split('T')[0].split('-');
           return {
             id: e.id,
             title: e.name,
             dateTime: e.dateTime,
-            date: `${month}/${day}/${year}`,
+            date: formatHstShortDate(e.dateTime),
             location: e.location,
             organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
             categoriesNew: e.categoriesNew || [], // Changed

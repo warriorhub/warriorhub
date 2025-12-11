@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import authOptions from '@/lib/authOptions';
 import BackLink from '@/components/BackLink';
 import LikeButton from '@/components/LikeButton';
+import { formatHstDate, formatHstTime } from '@/lib/time';
 
 interface EventDetailsPageProps {
   params: { id: string };
@@ -53,15 +54,8 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
     }
   }
 
-  const date = new Date(event.dateTime);
-  const dateDisplay = date.toLocaleDateString(
-    'en-US',
-    { month: 'long', day: 'numeric', year: 'numeric' },
-  );
-  const timeDisplay = date.toLocaleTimeString(
-    'en-US',
-    { hour: 'numeric', minute: '2-digit' },
-  );
+  const dateDisplay = formatHstDate(event.dateTime);
+  const timeDisplay = formatHstTime(event.dateTime);
 
   const displayImage = (() => {
     try {

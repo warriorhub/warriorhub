@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
+import { toDateTimeLocalHst, toUtcFromDateTimeLocal } from '@/lib/time';
 
 export type EventForComponent = {
   id: string;
@@ -32,7 +33,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     name: event.title,
     description: event.description,
     location: event.location,
-    dateTime: event.dateTime,
+    dateTime: toDateTimeLocalHst(event.dateTime),
     categoriesNew: event.categoriesNew || [],
     imageUrl: event.image,
   });
@@ -47,6 +48,18 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
       .then(data => setAvailableCategories(data))
       .catch(err => console.error('Error fetching categories:', err));
   }, []);
+
+  // Keep form in sync if the event prop changes (ensures datetime-local shows HST)
+  useEffect(() => {
+    setForm({
+      name: event.title,
+      description: event.description,
+      location: event.location,
+      dateTime: toDateTimeLocalHst(event.dateTime),
+      categoriesNew: event.categoriesNew || [],
+      imageUrl: event.image,
+    });
+  }, [event]);
 
   const looksLikeImageUrl = (url: string) => {
     try {
@@ -106,7 +119,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
         name: form.name,
         description: form.description,
         location: form.location,
-        dateTime: form.dateTime,
+        dateTime: toUtcFromDateTimeLocal(form.dateTime),
         categoriesNew: categoriesNewForAPI,
         imageUrl: form.imageUrl,
       }),

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Container, Row, Col } from 'react-bootstrap';
 import Image from 'next/image';
 import EventCard from '@/components/EventCard';
+import { formatHstDate } from '@/lib/time';
 
 type EventCardItem = {
   id: string;
@@ -42,11 +43,7 @@ const LandingPage: React.FC = () => {
         const mapped: EventCardItem[] = data.slice(0, 3).map((event) => ({
           id: event.id,
           title: event.name,
-          date: new Date(event.dateTime).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          }),
+          date: formatHstDate(event.dateTime),
           location: event.location,
           organization: event.createdBy?.email ?? 'Unknown',
           categories: event.categories ?? [],

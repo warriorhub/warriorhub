@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Container, Table, Button, Spinner, Row, Col, Badge, Alert } from 'react-bootstrap';
+import { formatHstDateTime } from '@/lib/time';
 
 type DBEvent = {
   id: string;
@@ -163,7 +164,7 @@ export default function ListEventsPage() {
               <tr key={e.id}>
                 <td className="fw-semibold">{e.name}</td>
                 <td>{e.createdBy?.organization || e.createdBy?.email || 'Unknown'}</td>
-                <td>{new Date(e.dateTime).toLocaleString()}</td>
+                <td>{formatHstDateTime(e.dateTime)}</td>
                 <td>{e.location}</td>
                 <td>
                   {e.categoriesNew && e.categoriesNew.length > 0 ? (
