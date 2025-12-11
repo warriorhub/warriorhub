@@ -79,19 +79,17 @@ const SearchEvents = () => {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid events response');
 
-        const mapped: EventForComponent[] = data.map((e: DBEvent) => {
-          return {
-            id: e.id,
-            title: e.name,
-            dateTime: e.dateTime,
-            date: formatHstShortDate(e.dateTime),
-            location: e.location,
-            organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
-            categoriesNew: e.categoriesNew || [], // Changed
-            description: e.description ?? '',
-            image: e.imageUrl ?? '/default-event.jpg',
-          };
-        });
+        const mapped: EventForComponent[] = data.map((e: DBEvent) => ({
+          id: e.id,
+          title: e.name,
+          dateTime: e.dateTime,
+          date: formatHstShortDate(e.dateTime),
+          location: e.location,
+          organization: e.createdBy?.organization || e.createdBy?.email || 'Unknown',
+          categoriesNew: e.categoriesNew || [], // Changed
+          description: e.description ?? '',
+          image: e.imageUrl ?? '/default-event.jpg',
+        }));
 
         setEvents(mapped);
       } catch (error) {
