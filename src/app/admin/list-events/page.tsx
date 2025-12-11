@@ -82,9 +82,6 @@ export default function ListEventsPage() {
   }, [status, isAdmin, fetchEvents]); // Now safe to include fetchEvents
 
   const handleDelete = async (id: string) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm('Delete this event?')) return;
-
     try {
       const res = await fetch(`/api/events/${id}`, { method: 'DELETE' });
 

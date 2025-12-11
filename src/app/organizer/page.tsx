@@ -21,8 +21,6 @@ export default function OrganizerProfilePage() {
 
   // Get user role
   const role = (session?.user as any)?.randomKey;
-
-  // Only true for actual organizers
   const isOrganizer = role === 'ORGANIZER';
 
   // Authorization check
@@ -80,7 +78,7 @@ export default function OrganizerProfilePage() {
     }
   };
 
-  // Loading state
+  // Loading UI
   if (status === 'loading' || loading) {
     return (
       <Container className="py-5 text-center">
@@ -92,6 +90,9 @@ export default function OrganizerProfilePage() {
 
   return (
     <main>
+      {/* ============================= */}
+      {/* HERO SECTION — Updated Version */}
+      {/* ============================= */}
       <section
         className="hero-section position-relative d-flex align-items-center"
         style={{
@@ -102,11 +103,13 @@ export default function OrganizerProfilePage() {
           backgroundRepeat: 'no-repeat',
         }}
       >
+        {/* Dark overlay */}
         <div
           className="position-absolute top-0 start-0 w-100 h-100"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}
         />
 
+        {/* Centered content */}
         <Container className="position-relative text-center" style={{ zIndex: 1 }}>
           <Image
             src="/uhlogo.png"
@@ -129,9 +132,24 @@ export default function OrganizerProfilePage() {
           >
             Welcome to WarriorHub
           </h1>
-        </Container>
 
+          {/* ⭐ Matching Landing Page Subtitle */}
+          <p
+            className="lead fs-4 text-white mt-3 d-inline-block px-4 py-2"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.35)',
+              borderRadius: '8px',
+              textShadow: '1px 1px 6px rgba(0,0,0,0.8)',
+            }}
+          >
+            Discover, connect, and experience UH Mānoa events all in one place
+          </p>
+        </Container>
       </section>
+
+      {/* ============================= */}
+      {/* ORGANIZER SETTINGS FORM */}
+      {/* ============================= */}
       <Container className="py-5" style={{ maxWidth: '650px' }}>
         <h2 className="mb-4 text-center">Organizer Profile Settings</h2>
 
@@ -139,7 +157,6 @@ export default function OrganizerProfilePage() {
         {error && <Alert variant="danger">{error}</Alert>}
 
         <Form onSubmit={handleSubmit}>
-
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control type="email" value={formData.email} disabled />
@@ -164,10 +181,8 @@ export default function OrganizerProfilePage() {
               Save Changes
             </Button>
           </div>
-
         </Form>
       </Container>
-
     </main>
   );
 }
