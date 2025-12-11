@@ -85,19 +85,19 @@ test('Add Events Page', async ({ page, browserName }) => {
   // Wait for page to load - it might redirect if not authorized
   await page.waitForLoadState('networkidle');
   // Now interact with form elements with proper waits
-  await page.getByRole('textbox', { name: 'Event Name' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Event Name' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Event Name' }).click();
 
-  await page.getByRole('textbox', { name: 'Time' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Time' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Time' }).click();
 
-  await page.getByRole('textbox', { name: 'Location' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Location' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Location' }).click();
 
-  await page.getByRole('textbox', { name: 'Description' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Description' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Description' }).click();
 
-  await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Image URL' }).click();
 
   // Check checkboxes with proper waits

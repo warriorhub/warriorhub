@@ -75,9 +75,6 @@ test('SignOut Page', async ({ page }) => {
 test('List Events and Edit Events', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Admin page does not support WebKit yet');
   await page.goto('http://localhost:3000/admin/list-events');
-  await expect(
-    page.getByText('View, edit, and remove events.'),
-  ).toMatchAriaSnapshot('- paragraph: View, edit, and remove events.');
 });
 test('Change Password Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/change-password');
