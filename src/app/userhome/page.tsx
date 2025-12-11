@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import EventCard from '@/components/EventCard';
 import LikeButton from '@/components/LikeButton';
 import { formatHstDate, formatHstTime } from '@/lib/time';
+import Image from 'next/image';
 
 type DBEvent = {
   id: string;
@@ -74,7 +75,8 @@ export default function UserHome() {
             && userId
             && (e.potentialAttendees ?? []).some(
               (att) => String(att.id) === String(userId),
-            );
+            ),
+          );
 
           return {
             id: e.id,
