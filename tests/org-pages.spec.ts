@@ -99,10 +99,11 @@ test('Add Events Page', async ({ page, browserName }) => {
 
   // await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Image URL' }).click();
-  await page.getByRole('textbox', { name: 'Event Name' }).click();
-  await page.getByRole('textbox', { name: 'Location' }).click();
-  await page.getByRole('textbox', { name: 'Description' }).click();
-  await page.getByRole('textbox', { name: 'Image URL' }).click();
+
+  // await page.getByRole('textbox', { name: 'Event Name' }).click();
+  // await page.getByRole('textbox', { name: 'Location' }).click();
+  // await page.getByRole('textbox', { name: 'Description' }).click();
+  // await page.getByRole('textbox', { name: 'Image URL' }).click();
   // Check checkboxes with proper waits
   await page.getByRole('checkbox', { name: 'Food' }).check();
   await page.getByRole('checkbox', { name: 'Recreation' }).check();
