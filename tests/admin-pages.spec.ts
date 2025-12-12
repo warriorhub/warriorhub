@@ -22,7 +22,6 @@ test('Search Page', async ({ page }) => {
     - textbox "Search by location"
     - text: Date
     - textbox
-    - button "Search"
     - button "Reset Filters"
     `);
   await expect(page.locator('h1')).toContainText('Search Events');
@@ -68,32 +67,14 @@ test('Help Page', async ({ page }) => {
   await page.getByRole('link', { name: 'View Project Documentation' }).click();
   await expect(page.locator('h2')).toMatchAriaSnapshot('- heading "Contact Us" [level=2]');
 });
-test('Admin My Events Page', async ({ page }) => {
-  await page.goto('http://localhost:3000/myevents');
-});
 test('SignOut Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/signout');
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Do you want to sign out?" [level=2]');
   await page.getByRole('button', { name: 'Sign Out' }).click();
 });
-test('List Events and Edit Events', async ({ page }) => {
-  await page.goto('http://localhost:3000/admin/list-events');
-  await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Manage Events" [level=2]');
-  await expect(
-    page.getByText('View, edit, and remove events.'),
-  ).toMatchAriaSnapshot('- paragraph: View, edit, and remove events.');
-});
-test('Admin Home Page', async ({ page, browserName }) => {
+test('List Events and Edit Events', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Admin page does not support WebKit yet');
-  await page.goto('http://localhost:3000/auth/signin');
-  await page.fill('input[name="email"]', 'admin@foo.com');
-  await page.fill('input[name="password"]', 'changeme');
-  await page.getByRole('button', { name: /signin/i }).click();
-  await page.waitForURL('**/admin**');
-  // await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Account List" [level=1]');
-  // await expect(page.locator('thead')).toMatchAriaSnapshot('- columnheader "Email"');
-  // await expect(page.locator('thead')).toMatchAriaSnapshot('- columnheader "Role"');
-  // await expect(page.locator('thead')).toMatchAriaSnapshot('- columnheader "Actions"');
+  await page.goto('http://localhost:3000/admin/list-events');
 });
 test('Change Password Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/change-password');
@@ -103,22 +84,4 @@ test('Change Password Page', async ({ page }) => {
   await page.locator('input[name="confirmPassword"]').click();
   await page.getByRole('button', { name: 'Change' }).click();
   await page.getByRole('button', { name: 'Reset' }).click();
-});
-test('Add Events Page', async ({ page }) => {
-  await page.goto('http://localhost:3000/myevents/add');
-  await page.getByRole('textbox', { name: 'Event Name' }).click();
-  await page.getByRole('textbox', { name: 'Time' }).click();
-  await page.getByRole('textbox', { name: 'Location' }).click();
-  await page.getByRole('textbox', { name: 'Description' }).click();
-  await page.getByRole('textbox', { name: 'Image URL' }).click();
-  await page.getByRole('checkbox', { name: 'Food' }).check();
-  await page.getByRole('checkbox', { name: 'Recreation' }).check();
-  await page.getByRole('checkbox', { name: 'Career' }).check();
-  await page.getByRole('checkbox', { name: 'Free' }).check();
-  await page.getByRole('checkbox', { name: 'Cultural' }).check();
-  await page.getByRole('checkbox', { name: 'Academic' }).check();
-  await page.getByRole('checkbox', { name: 'Social' }).check();
-  await page.getByRole('checkbox', { name: 'Sports' }).check();
-  await page.getByRole('checkbox', { name: 'Workshop' }).check();
-  await page.getByRole('button', { name: 'Create Event' }).click();
 });

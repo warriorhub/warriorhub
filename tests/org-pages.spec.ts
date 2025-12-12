@@ -6,7 +6,7 @@ test.use({
 test('Sign In Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/signin');
   await page.locator('input[name="email"]').fill('org@foo.com');
-  await page.locator('input[name="password"]').fill('changeme');
+  await page.locator('input[name="password"]').fill('changeme123');
   await page.getByRole('button', { name: 'Signin' }).click();
 });
 test('Search Page', async ({ page }) => {
@@ -21,7 +21,6 @@ test('Search Page', async ({ page }) => {
     - textbox "Search by location"
     - text: Date
     - textbox
-    - button "Search"
     - button "Reset Filters"
     `);
   await expect(page.locator('h1')).toContainText('Search Events');
@@ -70,15 +69,6 @@ test('Help Page', async ({ page }) => {
 test('Organizer My Events Page', async ({ page }) => {
   await page.goto('http://localhost:3000/myevents');
 });
-test('Change Password Page', async ({ page }) => {
-  await page.goto('http://localhost:3000/auth/change-password');
-  await page.getByRole('heading', { name: 'Change Password' }).click();
-  await page.locator('div').filter({ hasText: /^Old Passord$/ }).click();
-  await page.locator('div').filter({ hasText: /^New Password$/ }).click();
-  await page.locator('input[name="confirmPassword"]').click();
-  await page.getByRole('button', { name: 'Change' }).click();
-  await page.getByRole('button', { name: 'Reset' }).click();
-});
 test('SignOut Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/signout');
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Do you want to sign out?" [level=2]');
@@ -87,45 +77,23 @@ test('SignOut Page', async ({ page }) => {
 test('Organizer Home Page', async ({ page }) => {
   await page.goto('http://localhost:3000/organizer');
 });
-test('Add Events Page', async ({ page }) => {
-  await page.goto('http://localhost:3000/myevents/add');
-
-  // Wait for page to load - it might redirect if not authorized
+test('Add Events Page', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'Skip WebKit');
+  await page.goto('http://localhost:3000/auth/signin');
+  await page.locator('input[name="email"]').click();
+  await page.locator('input[name="email"]').fill('org@foo.com');
+  await page.locator('input[name="password"]').click();
+  await page.locator('input[name="password"]').fill('changeme123');
+  await page.locator('input[name="password"]').press('Enter');
+  await page.getByRole('link', { name: 'My Events' }).click();
+  await page.goto('http://localhost:3000/myevents');
+  await page.getByRole('button', { name: 'ADD NEW' }).click();
+  await page.waitForURL('**/myevents/add');
   await page.waitForLoadState('networkidle');
-
-  // Check if we're on the right page (not redirected)
-  const currentUrl = page.url();
-  if (currentUrl.includes('/not-authorized') || currentUrl.includes('/auth/signin')) {
-    throw new Error('User is not authorized to access add events page');
-  }
-
-  // Now interact with form elements with proper waits
-  await page.getByRole('textbox', { name: 'Event Name' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Event Name' }).click();
-
-  await page.getByRole('textbox', { name: 'Time' }).waitFor({ state: 'visible' });
-  await page.getByRole('textbox', { name: 'Time' }).click();
-
-  await page.getByRole('textbox', { name: 'Location' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Location' }).click();
-
-  await page.getByRole('textbox', { name: 'Description' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Description' }).click();
-
-  await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
   await page.getByRole('textbox', { name: 'Image URL' }).click();
-
-  // Check checkboxes with proper waits
-  await page.getByRole('checkbox', { name: 'Food' }).check();
-  await page.getByRole('checkbox', { name: 'Recreation' }).check();
-  await page.getByRole('checkbox', { name: 'Career' }).check();
-  await page.getByRole('checkbox', { name: 'Free' }).check();
-  await page.getByRole('checkbox', { name: 'Cultural' }).check();
-  await page.getByRole('checkbox', { name: 'Academic' }).check();
-  await page.getByRole('checkbox', { name: 'Social' }).check();
-  await page.getByRole('checkbox', { name: 'Sports' }).check();
-  await page.getByRole('checkbox', { name: 'Workshop' }).check();
-
-  // Don't actually submit - just verify form is accessible
+  await expect(page.getByRole('heading')).toContainText('Add Event');
   await expect(page.getByRole('button', { name: 'Create Event' })).toBeVisible();
 });

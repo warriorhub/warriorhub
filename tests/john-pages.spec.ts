@@ -6,7 +6,7 @@ test.use({
 test('Sign In Page', async ({ page }) => {
   await page.goto('http://localhost:3000/auth/signin');
   await page.locator('input[name="email"]').fill('john@foo.com');
-  await page.locator('input[name="password"]').fill('changeme');
+  await page.locator('input[name="password"]').fill('changeme123');
   await page.getByRole('button', { name: 'Signin' }).click();
 });
 test('User Home Page', async ({ page }) => {
@@ -24,7 +24,6 @@ test('Search Page', async ({ page }) => {
     - textbox "Search by location"
     - text: Date
     - textbox
-    - button "Search"
     - button "Reset Filters"
     `);
   await expect(page.locator('h1')).toContainText('Search Events');
