@@ -85,21 +85,25 @@ test('Add Events Page', async ({ page, browserName }) => {
   // Wait for page to load - it might redirect if not authorized
   await page.waitForLoadState('networkidle');
   // Now interact with form elements with proper waits
-  await page.getByRole('textbox', { name: 'Event Name' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Event Name' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Event Name' }).click();
 
-  await page.getByRole('textbox', { name: 'Time' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Time' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Time' }).click();
 
-  await page.getByRole('textbox', { name: 'Location' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Location' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Location' }).click();
 
-  await page.getByRole('textbox', { name: 'Description' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Description' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Description' }).click();
 
-  await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
+  // await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Image URL' }).click();
-
+  await expect(page.getByRole('heading')).toContainText('Add Event');
+  await page.getByRole('textbox', { name: 'Event Name' }).click();
+  await page.getByRole('textbox', { name: 'Location' }).click();
+  await page.getByRole('textbox', { name: 'Description' }).click();
+  await page.getByRole('textbox', { name: 'Image URL' }).click();
   // Check checkboxes with proper waits
   await page.getByRole('checkbox', { name: 'Food' }).check();
   await page.getByRole('checkbox', { name: 'Recreation' }).check();
@@ -114,3 +118,25 @@ test('Add Events Page', async ({ page, browserName }) => {
   // Don't actually submit - just verify form is accessible
   await expect(page.getByRole('button', { name: 'Create Event' })).toBeVisible();
 });
+//   await page.goto('http://localhost:3000/not-authorized');
+//   await page.getByRole('button', { name: 'admin@foo.com' }).click();
+//   await page.getByRole('link', { name: 'Sign Out' }).click();
+//   await page.getByRole('button', { name: 'Sign Out' }).click();
+//   await page.getByRole('button', { name: 'Login' }).click();
+//   await page.getByRole('link', { name: 'Sign in' }).click();
+//   await page.locator('input[name="email"]').click();
+//   await page.locator('input[name="email"]').fill('org@foo.com');
+//   await page.locator('input[name="password"]').click();
+//   await page.locator('input[name="password"]').fill('changeme123');
+//   await page.locator('input[name="password"]').press('Enter');
+//   await page.getByRole('button', { name: 'Signin' }).click();
+//   await page.getByRole('link', { name: 'My Events' }).click();
+//   await page.goto('https://warriorhub-gamma.vercel.app/myevents');
+//   await page.getByRole('button', { name: 'ADD NEW' }).click();
+//   await page.getByRole('textbox', { name: 'Event Name' }).click();
+//   await page.getByRole('textbox', { name: 'Location' }).click();
+//   await page.getByRole('textbox', { name: 'Description' }).click();
+//   await page.getByRole('textbox', { name: 'Image URL' }).click();
+//   await expect(page.getByRole('heading')).toContainText('Add Event');
+//   await expect(page.getByRole('heading')).toMatchAriaSnapshot(`- heading "Add Event" [level=2]`);
+// });
