@@ -46,7 +46,7 @@ test('Search Page', async ({ page }) => {
   await page.getByRole('button', { name: 'Workshop' }).click();
   await page.getByRole('button', { name: 'Sports' }).click();
 });
-test('Calender Page', async ({ page }) => {
+test('Calendar Page', async ({ page }) => {
   await page.goto('http://localhost:3000/calendar');
   await expect(page.getByRole('heading')).toMatchAriaSnapshot('- heading "Calendar" [level=1]');
   await page.getByRole('button', { name: 'Back' }).click();

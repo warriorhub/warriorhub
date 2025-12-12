@@ -5,29 +5,27 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import authOptions from '@/lib/authOptions';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const futureOnly = searchParams.get('futureOnly') === 'true';
+
     const events = await prisma.event.findMany({
       include: {
-        createdBy: {
-          select: {
-            id: true,
-            email: true,
-            organization: true, // Add this
-          },
-        },
+        createdBy: { select: { id: true, email: true, organization: true } },
         categoriesNew: true,
+        potentialAttendees: { select: { id: true } },
       },
-      orderBy: { dateTime: 'desc' },
+      where: futureOnly
+        ? { dateTime: { gte: new Date() } } // only upcoming
+        : undefined, // return ALL events
+      orderBy: { dateTime: 'asc' },
     });
 
     return NextResponse.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch events' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
   }
 }
 

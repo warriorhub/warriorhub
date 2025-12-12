@@ -13,7 +13,7 @@ export default async function AddEventPage() {
   }
 
   // Get user role
-  const userRole = (session.user as { randomKey?: string })?.randomKey;
+  const userRole = session.user?.randomKey;
 
   // Only ORGANIZER and ADMIN can create events
   if (userRole !== 'ORGANIZER' && userRole !== 'ADMIN') {

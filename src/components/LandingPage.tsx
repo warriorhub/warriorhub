@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Container, Row, Col } from 'react-bootstrap';
 import Image from 'next/image';
 import EventCard from '@/components/EventCard';
+import { formatHstDate } from '@/lib/time';
 
 type EventCardItem = {
   id: string;
@@ -21,8 +22,8 @@ type DBEvent = {
   name: string;
   dateTime: string;
   location: string;
-  createdBy?: { email?: string };
-  categories?: string[];
+  createdBy?: { email?: string; organization?: string };
+  categoriesNew?: { id: number; name: string }[];
   imageUrl?: string | null;
 };
 
@@ -33,7 +34,7 @@ const LandingPage: React.FC = () => {
   useEffect(() => {
     const fetchFeaturedEvents = async () => {
       try {
-        const res = await fetch('/api/events');
+        const res = await fetch('/api/events?futureOnly=true');
         if (!res.ok) throw new Error(`Events request failed: ${res.status}`);
 
         const data: DBEvent[] = await res.json();
@@ -42,14 +43,12 @@ const LandingPage: React.FC = () => {
         const mapped: EventCardItem[] = data.slice(0, 3).map((event) => ({
           id: event.id,
           title: event.name,
-          date: new Date(event.dateTime).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          }),
+          date: formatHstDate(event.dateTime),
           location: event.location,
-          organization: event.createdBy?.email ?? 'Unknown',
-          categories: event.categories ?? [],
+          organization: event.createdBy?.organization
+            || event.createdBy?.email
+            || 'Unknown',
+          categories: event.categoriesNew?.map(c => c.name) ?? [],
           image: event.imageUrl ?? '/default-event.jpg',
         }));
 
@@ -185,7 +184,7 @@ const LandingPage: React.FC = () => {
                 </div>
                 <h4>Browse Events</h4>
                 <p className="text-muted">
-                  Students can browse and RSVP for events that interest them
+                  Students can browse and archive events that interest them
                 </p>
               </div>
             </Col>
@@ -219,7 +218,7 @@ const LandingPage: React.FC = () => {
                 </div>
                 <h4>Quality Control</h4>
                 <p className="text-muted">
-                  Admins validate new events and maintain event quality
+                  Admins validate new organizations and maintain event quality
                 </p>
               </div>
             </Col>

@@ -3,22 +3,25 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function OrganizerProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+
   const [formData, setFormData] = useState({
     email: '',
     organization: '',
   });
+
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Get user role
   const role = (session?.user as any)?.randomKey;
-  const isOrganizer = role === 'ORGANIZER' || role === 'ADMIN';
+  const isOrganizer = role === 'ORGANIZER';
 
   // Authorization check
   useEffect(() => {
@@ -29,43 +32,29 @@ export default function OrganizerProfilePage() {
       return;
     }
 
-    // Only ORGANIZER and ADMIN can access this page
     if (!isOrganizer) {
       router.push('/not-authorized');
     }
   }, [status, isOrganizer, router]);
 
-  // Fetch profile data
+  // Fetch profile
   useEffect(() => {
     if (status === 'authenticated' && isOrganizer) {
       setLoading(true);
       fetch('/api/user/profile')
         .then(async (res) => {
-          if (res.status === 401 || res.status === 403) {
-            router.push('/not-authorized');
-            return;
-          }
-
-          if (!res.ok) {
-            throw new Error('Failed to load profile');
-          }
-
+          if (!res.ok) throw new Error('Failed to load profile');
           const data = await res.json();
+
           setFormData({
-            email: data.email || '',
-            organization: data.organization || '',
+            email: data.email ?? '',
+            organization: data.organization ?? '',
           });
         })
-        .catch((err: unknown) => {
-          const message = err instanceof Error ? err.message : 'Failed to load profile';
-          console.error('Error loading profile:', err);
-          setError(message);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+        .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load profile'))
+        .finally(() => setLoading(false));
     }
-  }, [status, isOrganizer, router]);
+  }, [status, isOrganizer]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,24 +68,17 @@ export default function OrganizerProfilePage() {
         body: JSON.stringify({ organization: formData.organization }),
       });
 
-      if (res.status === 401 || res.status === 403) {
-        router.push('/not-authorized');
-        return;
-      }
-
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Update failed');
+        throw new Error('Update failed');
       }
 
       setSuccess('Organization name updated successfully!');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update profile';
-      setError(message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Update failed');
     }
   };
 
-  // Show loading while checking authentication
+  // Loading UI
   if (status === 'loading' || loading) {
     return (
       <Container className="py-5 text-center">
@@ -106,54 +88,101 @@ export default function OrganizerProfilePage() {
     );
   }
 
-  // This shouldn't render because of the redirect, but just in case
-  if (status === 'unauthenticated' || !isOrganizer) {
-    return (
-      <Container className="py-5 text-center">
-        <Spinner animation="border" />
-        <p className="mt-3">Redirecting...</p>
-      </Container>
-    );
-  }
-
   return (
-    <Container className="py-5" style={{ maxWidth: '600px' }}>
-      <h2 className="mb-4">Organizer Profile Settings</h2>
+    <main>
+      {/* ============================= */}
+      {/* HERO SECTION — Updated Version */}
+      {/* ============================= */}
+      <section
+        className="hero-section position-relative d-flex align-items-center"
+        style={{
+          minHeight: '450px',
+          backgroundImage: 'url(/campus.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        {/* Dark overlay */}
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}
+        />
 
-      {success && <Alert variant="success">{success}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
-
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            value={formData.email}
-            disabled
+        {/* Centered content */}
+        <Container className="position-relative text-center" style={{ zIndex: 1 }}>
+          <Image
+            src="/uhlogo.png"
+            alt="UH Logo"
+            width={180}
+            height={180}
+            priority
+            style={{
+              filter: 'drop-shadow(2px 2px 8px rgba(0, 0, 0, 0.7))',
+              marginBottom: '1rem',
+            }}
           />
-          <Form.Text className="text-muted">
-            Email cannot be changed
-          </Form.Text>
-        </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Organization Name</Form.Label>
-          <Form.Control
-            type="text"
-            name="organization"
-            value={formData.organization}
-            onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-            placeholder="e.g., IEEE UH Mānoa Chapter"
-          />
-          <Form.Text className="text-muted">
-            This will be displayed as the organizer for your events
-          </Form.Text>
-        </Form.Group>
+          <h1
+            className="fw-bold text-white"
+            style={{
+              fontSize: 'clamp(2.2rem, 6vw, 4rem)',
+              textShadow: '2px 2px 8px rgba(0, 0, 0, 0.7)',
+            }}
+          >
+            Welcome to WarriorHub
+          </h1>
 
-        <Button variant="primary" type="submit">
-          Save Changes
-        </Button>
-      </Form>
-    </Container>
+          {/* ⭐ Matching Landing Page Subtitle */}
+          <p
+            className="lead fs-4 text-white mt-3 d-inline-block px-4 py-2"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.35)',
+              borderRadius: '8px',
+              textShadow: '1px 1px 6px rgba(0,0,0,0.8)',
+            }}
+          >
+            Discover, connect, and experience UH Mānoa events all in one place
+          </p>
+        </Container>
+      </section>
+
+      {/* ============================= */}
+      {/* ORGANIZER SETTINGS FORM */}
+      {/* ============================= */}
+      <Container className="py-5" style={{ maxWidth: '650px' }}>
+        <h2 className="mb-4 text-center">Organizer Profile Settings</h2>
+
+        {success && <Alert variant="success">{success}</Alert>}
+        {error && <Alert variant="danger">{error}</Alert>}
+
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" value={formData.email} disabled />
+            <Form.Text className="text-muted">Email cannot be changed</Form.Text>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label>Organization Name</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.organization}
+              onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+              placeholder="e.g., IEEE UH Mānoa Chapter"
+            />
+            <Form.Text className="text-muted">
+              This will be displayed as the organizer for your events
+            </Form.Text>
+          </Form.Group>
+
+          <div className="text-center">
+            <Button variant="primary" type="submit">
+              Save Changes
+            </Button>
+          </div>
+        </Form>
+      </Container>
+    </main>
   );
 }

@@ -9,6 +9,8 @@ interface EventCardProps {
   image: string;
   onView: () => void;
   onVisit?: () => void;
+  likeButton?: React.ReactNode;
+  adminActions?: React.ReactNode;
 }
 
 export default function EventCard({
@@ -20,8 +22,11 @@ export default function EventCard({
   image,
   onView,
   onVisit,
+  likeButton,
+  adminActions,
 }: EventCardProps) {
   const handleVisit = onVisit ?? onView;
+
   const isLikelyImage = (() => {
     try {
       const parsed = new URL(image);
@@ -31,6 +36,7 @@ export default function EventCard({
       return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/i.test(image || '');
     }
   })();
+
   const displayImage = isLikelyImage ? image : '/default-event.jpg';
 
   return (
@@ -69,8 +75,7 @@ export default function EventCard({
 
         <Card.Text className="flex-grow-1">
           {date}
-          {' '}
-          •
+          <br />
           {location}
           <br />
           {organization}
@@ -81,6 +86,20 @@ export default function EventCard({
             Visit Page
           </Button>
         </div>
+
+        {/* ❤️ Like Button */}
+        {likeButton && (
+          <div className="mt-3">
+            {likeButton}
+          </div>
+        )}
+
+        {/* ⭐ Admin Buttons (Edit/Delete) */}
+        {adminActions && (
+          <div className="mt-3 d-flex gap-3">
+            {adminActions}
+          </div>
+        )}
       </Card.Body>
     </Card>
   );
@@ -88,4 +107,6 @@ export default function EventCard({
 
 EventCard.defaultProps = {
   onVisit: undefined,
+  likeButton: null,
+  adminActions: null,
 };

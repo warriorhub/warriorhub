@@ -1,3 +1,5 @@
+/* eslint-disable react/require-default-props */
+
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
@@ -11,11 +13,9 @@ import {
 import { enUS } from 'date-fns/locale';
 import { Container } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import PropTypes from 'prop-types';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-type DBEvent = {
+export type DBEvent = {
   id: string;
   name: string;
   dateTime: string;
@@ -26,7 +26,7 @@ type DBEvent = {
   createdBy?: { email?: string };
 };
 
-type CalendarEvent = {
+export type CalendarEvent = {
   id: string;
   title: string;
   start: Date;
@@ -39,7 +39,7 @@ const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: (currentDate: Date) => startOfWeek(currentDate, { weekStartsOn: 0 }),
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 0 }),
   getDay,
   locales,
 });
@@ -61,45 +61,47 @@ const monthNames = [
   'December',
 ];
 
-type CalendarViewProps = {
-  initialDate?: Date;
-};
+export const EventNoTime = ({ event }: { event: CalendarEvent }) => <span>{event.title}</span>;
 
-const CalendarToolbar: React.FC<ToolbarProps<CalendarEvent>> = ({
+export const CalendarToolbar = ({
   date,
   label,
   onNavigate,
   onView,
-}) => {
+}: ToolbarProps<CalendarEvent>) => {
   const currentMonth = date.getMonth();
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMonth = Number(e.target.value);
     const newDate = new Date(date);
-    newDate.setDate(1); // prevent month overflow (e.g., Jan 31 -> Mar 3)
     newDate.setMonth(newMonth);
+    newDate.setDate(1);
     onNavigate('DATE', newDate);
   };
 
   return (
     <div className="rbc-toolbar" style={{ gap: '0.5rem' }}>
+      {/* Navigation Buttons */}
       <span className="rbc-btn-group">
         <button type="button" onClick={() => onNavigate('PREV')}>Back</button>
         <button type="button" onClick={() => onNavigate('TODAY')}>Today</button>
         <button type="button" onClick={() => onNavigate('NEXT')}>Next</button>
       </span>
+
+      {/* Center Label */}
       <span className="rbc-toolbar-label">{label}</span>
+
+      {/* Month Selector */}
       <span className="rbc-btn-group" style={{ alignItems: 'center' }}>
-        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-        <label className="me-2" style={{ marginBottom: 0 }}>
-          Month:
-          <select value={currentMonth} onChange={handleMonthChange} className="ms-2">
-            {monthNames.map((name, idx) => (
-              <option key={name} value={idx}>{name}</option>
-            ))}
-          </select>
-        </label>
+        <span className="me-2">Month:</span>
+        <select value={currentMonth} onChange={handleMonthChange}>
+          {monthNames.map((name, idx) => (
+            <option key={name} value={idx}>{name}</option>
+          ))}
+        </select>
       </span>
+
+      {/* View Buttons */}
       <span className="rbc-btn-group">
         <button type="button" onClick={() => onView('month')}>Month</button>
         <button type="button" onClick={() => onView('week')}>Week</button>
@@ -109,102 +111,100 @@ const CalendarToolbar: React.FC<ToolbarProps<CalendarEvent>> = ({
   );
 };
 
-export default function CalendarView({ initialDate }: CalendarViewProps) {
+export default function CalendarView({ initialDate }: { initialDate?: Date }) {
+  const router = useRouter();
+
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [view, setView] = useState<View>('month');
   const [date, setDate] = useState<Date>(initialDate || new Date());
-  const router = useRouter();
 
-  const defaultDate = useMemo(() => initialDate || new Date(), [initialDate]);
+  const safeInitialDate = useMemo(() => initialDate || new Date(), [initialDate]);
 
   useEffect(() => {
-    setDate(defaultDate);
-  }, [defaultDate]);
+    setDate(safeInitialDate);
+  }, [safeInitialDate]);
 
-  const setDateAndUrl = useCallback((nextDate: Date) => {
-    setDate(nextDate);
+  const updateDateInUrl = useCallback((next: Date) => {
+    setDate(next);
+
     if (typeof window !== 'undefined') {
-      const safeDate = new Date(nextDate);
-      safeDate.setDate(1);
-      const year = safeDate.getFullYear();
-      const month = safeDate.getMonth() + 1; // 1-12
+      const safe = new Date(next);
+      safe.setDate(1);
+      const year = safe.getFullYear();
+      const month = safe.getMonth() + 1;
       window.history.replaceState(null, '', `/calendar/${year}/${month}`);
     }
   }, []);
 
-  const handleSelectEvent = useCallback((event: CalendarEvent) => {
-    const eventId = event.resource?.id || event.id;
-    if (eventId) {
-      router.push(`/events/${eventId}`);
-    }
-  }, [router]);
+  const handleSelectEvent = useCallback(
+    (event: CalendarEvent) => {
+      router.push(`/events/${event.id}`);
+    },
+    [router],
+  );
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const loadEvents = async () => {
       try {
         const res = await fetch('/api/events');
-        if (!res.ok) throw new Error(`Failed to load events: ${res.status}`);
+        if (!res.ok) throw new Error('Failed to load events');
+
         const data: DBEvent[] = await res.json();
 
-        const mapped: CalendarEvent[] = data.map((event) => {
-          const start = new Date(event.dateTime);
+        const mapped = data.map((e) => {
+          const start = new Date(e.dateTime);
           const end = new Date(start.getTime() + defaultDurationMinutes * 60 * 1000);
+
           return {
-            id: event.id,
-            title: event.name,
+            id: e.id,
+            title: e.name, // no time here
             start,
             end,
-            resource: event,
+            resource: e,
           };
         });
 
         setEvents(mapped);
-      } catch (error) {
-        console.error('Error loading events for calendar:', error);
+      } catch (err) {
+        console.error('Calendar Load Error:', err);
         setEvents([]);
       }
     };
 
-    fetchEvents();
+    loadEvents();
   }, []);
 
   return (
     <main>
       <Container className="py-4">
         <h1 className="mb-4">Calendar</h1>
+
         <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ minHeight: '70vh' }}
-          views={['month', 'week', 'day'] as View[]}
           view={view}
-          onView={(nextView) => setView(nextView)}
+          onView={setView}
           date={date}
-          onNavigate={(nextDate) => setDateAndUrl(nextDate)}
-          defaultView="month"
-          defaultDate={defaultDate}
+          onNavigate={updateDateInUrl}
+          defaultDate={safeInitialDate}
+          views={['month', 'week', 'day']}
           popup
           onSelectEvent={handleSelectEvent}
-          components={{ toolbar: CalendarToolbar }}
+          components={{
+            toolbar: CalendarToolbar,
+            event: EventNoTime,
+          }}
+          formats={{
+            eventTimeRangeFormat: () => '', // removes time inside event box
+            eventTimeRangeStartFormat: () => '',
+            eventTimeRangeEndFormat: () => '',
+            timeGutterFormat: () => '', // removes left-side gutter times
+          }}
+          style={{ minHeight: '70vh' }}
         />
       </Container>
     </main>
   );
 }
-
-CalendarView.defaultProps = {
-  initialDate: undefined,
-};
-
-CalendarToolbar.propTypes = {
-  date: PropTypes.instanceOf(Date).isRequired,
-  label: PropTypes.string.isRequired,
-  onNavigate: PropTypes.func.isRequired,
-  onView: PropTypes.func.isRequired,
-};
-
-CalendarView.propTypes = {
-  initialDate: PropTypes.instanceOf(Date),
-};

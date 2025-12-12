@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Container, Table, Button, Spinner, Row, Col, Badge, Alert } from 'react-bootstrap';
+import { formatHstDateTime } from '@/lib/time';
 
 type DBEvent = {
   id: string;
@@ -14,6 +15,10 @@ type DBEvent = {
   location: string;
   categoriesNew?: { id: number; name: string }[];
   imageUrl?: string | null;
+  createdBy?: {
+    organization?: string | null;
+    email?: string | null;
+  };
 };
 
 export default function ListEventsPage() {
@@ -77,9 +82,6 @@ export default function ListEventsPage() {
   }, [status, isAdmin, fetchEvents]); // Now safe to include fetchEvents
 
   const handleDelete = async (id: string) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm('Delete this event?')) return;
-
     try {
       const res = await fetch(`/api/events/${id}`, { method: 'DELETE' });
 
@@ -146,7 +148,8 @@ export default function ListEventsPage() {
         <Table striped hover bordered responsive className="shadow-sm">
           <thead className="table-light">
             <tr>
-              <th>Name</th>
+              <th>Event</th>
+              <th>Organization</th>
               <th>Date & Time</th>
               <th>Location</th>
               <th>Categories</th>
@@ -157,7 +160,8 @@ export default function ListEventsPage() {
             {events.map(e => (
               <tr key={e.id}>
                 <td className="fw-semibold">{e.name}</td>
-                <td>{new Date(e.dateTime).toLocaleString()}</td>
+                <td>{e.createdBy?.organization || e.createdBy?.email || 'Unknown'}</td>
+                <td>{formatHstDateTime(e.dateTime)}</td>
                 <td>{e.location}</td>
                 <td>
                   {e.categoriesNew && e.categoriesNew.length > 0 ? (
