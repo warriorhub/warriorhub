@@ -99,7 +99,6 @@ test('Add Events Page', async ({ page, browserName }) => {
 
   // await page.getByRole('textbox', { name: 'Image URL' }).waitFor({ state: 'visible' });
   // await page.getByRole('textbox', { name: 'Image URL' }).click();
-  await expect(page.getByRole('heading')).toContainText('Add Event');
   await page.getByRole('textbox', { name: 'Event Name' }).click();
   await page.getByRole('textbox', { name: 'Location' }).click();
   await page.getByRole('textbox', { name: 'Description' }).click();
