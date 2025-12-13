@@ -10,4 +10,10 @@ const nextConfig = {
   },
 };
 
+/**
+ * Set the time zone to UTC because that's what Vercel uses.
+ * Prevents issues with mismatching times between local development environment and Vercel
+ */
+process.env.TZ = "UTC";
+
 export default nextConfig;

@@ -3,13 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
+import type { CategoryNew } from '@prisma/client';
 import { toUtcFromDateAndTime } from '@/lib/time';
-
-type CategoryNew = {
-  id: number;
-  name: string;
-  description?: string;
-};
 
 export default function AddEventForm() {
   const router = useRouter();
@@ -79,7 +74,8 @@ export default function AddEventForm() {
     try {
       const dateTime = toUtcFromDateAndTime(formState.date, formState.time);
 
-      // Convert to API format: [{id: 1}, {id: 2}]
+      // Convert to Prisma API format: [{id: 1}, {id: 2}]
+      // <https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries#connect-multiple-records>
       const categoriesNewForAPI = formState.categoriesNew.map(cat => ({ id: cat.id }));
 
       const res = await fetch('/api/events', {
@@ -91,7 +87,7 @@ export default function AddEventForm() {
           description: formState.description,
           dateTime,
           location: formState.location,
-          categoriesNew: categoriesNewForAPI, // Changed
+          categoriesNew: categoriesNewForAPI,
           imageUrl: formState.imageUrl || undefined,
         }),
       });

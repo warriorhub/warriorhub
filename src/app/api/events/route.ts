@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
       description,
       dateTime,
       location,
-      categories,
       categoriesNew,
       imageUrl,
     } = body;
@@ -64,7 +63,7 @@ export async function POST(req: NextRequest) {
         description: description || null,
         dateTime: new Date(dateTime),
         location,
-        categories: categories || [],
+        categories: [], // deprecated
         categoriesNew: {
           // use connect to prevent users from creating new categories
           // Prisma Client will throw an exception if any record cannot be found

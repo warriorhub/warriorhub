@@ -89,6 +89,7 @@ export default function MyEventsPage() {
 
         const mapped: EventTableRow[] = eventsToShow.map((e) => {
           const start = new Date(e.dateTime);
+          // todo: properly implement event durations
           const end = new Date(start.getTime() + 60 * 60 * 1000);
           return {
             id: e.id,

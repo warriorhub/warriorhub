@@ -109,9 +109,7 @@ export default async function EventDetailsPage({ params }: EventDetailsPageProps
             <div className="mb-3 text-muted">
               <div>
                 {dateDisplay}
-                {' '}
-                at
-                {' '}
+                {' at '}
                 {timeDisplay}
               </div>
               <div>{event.location}</div>
