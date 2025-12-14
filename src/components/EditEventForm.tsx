@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
 import type { CategoryNew } from '@prisma/client';
 import { toDateTimeLocalHst, toUtcFromDateTimeLocal } from '@/lib/time';
+import isValidImage from '@/lib/imageVal';
 
 export type EventForComponent = {
   id: string;
@@ -56,16 +57,6 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
     });
   }, [event]);
 
-  const looksLikeImageUrl = (url: string) => {
-    try {
-      const parsed = new URL(url);
-      const pathname = parsed.pathname.toLowerCase();
-      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(pathname);
-    } catch {
-      return false;
-    }
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -99,7 +90,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
 
     setImageUrlError('');
 
-    if (form.imageUrl && !looksLikeImageUrl(form.imageUrl)) {
+    if (form.imageUrl && !isValidImage(form.imageUrl)) {
       setImageUrlError('Image URL must point to an image (e.g., .jpg, .png, .webp).');
       return;
     }
