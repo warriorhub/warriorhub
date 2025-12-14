@@ -30,7 +30,7 @@
     "react-bootstrap": "^2.10.10",
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^18.3.1",
-    "react-hook-form": "^7.67.0",
+    "react-hook-form": "^7.68.0",
     "sweetalert": "^2.1.2",
     "ts-node": "10.9.2",
     "yup": "^1.7.1"
@@ -38,7 +38,7 @@
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@types/bcrypt": "^5.0.2",
-    "@types/node": "^22.19.1",
+    "@types/node": "^22.19.3",
     "@types/react": "^18.3.27",
     "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^18.3.7",
@@ -47,7 +47,7 @@
     "eslint-config-airbnb-typescript": "^18.0.0",
     "eslint-config-next": "14.2.10",
     "eslint-config-prettier": "^9.1.2",
-    "prettier": "^3.7.2",
+    "prettier": "^3.7.4",
     "prettier-eslint": "^16.4.2",
     "prisma": "^5.22.0",
     "typescript": "^5.9.3"
