@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Alert } from 'react-bootstrap';
 import type { CategoryNew } from '@prisma/client';
 import { toUtcFromDateAndTime } from '@/lib/time';
+import isValidImage from '@/lib/imageVal';
 
 export default function AddEventForm() {
   const router = useRouter();
@@ -31,16 +32,6 @@ export default function AddEventForm() {
       .catch(err => console.error('Error fetching categories:', err));
   }, []);
 
-  const looksLikeImageUrl = (url: string) => {
-    try {
-      const parsed = new URL(url);
-      const pathname = parsed.pathname.toLowerCase();
-      return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(pathname);
-    } catch {
-      return false;
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -65,7 +56,7 @@ export default function AddEventForm() {
     setErrorMessage('');
     setImageUrlError('');
 
-    if (formState.imageUrl && !looksLikeImageUrl(formState.imageUrl)) {
+    if (formState.imageUrl && !await isValidImage(formState.imageUrl)) {
       setImageUrlError('Image URL must point to an image (e.g., .jpg, .png, .webp).');
       setSubmitting(false);
       return;
