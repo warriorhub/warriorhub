@@ -90,7 +90,7 @@ export default function EditEventForm({ event, onSave }: EditEventFormProps) {
 
     setImageUrlError('');
 
-    if (form.imageUrl && !isValidImage(form.imageUrl)) {
+    if (form.imageUrl && !await isValidImage(form.imageUrl)) {
       setImageUrlError('Image URL must point to an image (e.g., .jpg, .png, .webp).');
       return;
     }

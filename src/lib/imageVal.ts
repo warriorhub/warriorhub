@@ -1,9 +1,9 @@
-export default function isValidImage(url: string) {
-  try {
-    const parsed = new URL(url);
-    const pathname = parsed.pathname.toLowerCase();
-    return /\.(jpe?g|png|gif|webp|avif|bmp|svg)$/.test(pathname);
-  } catch {
-    return false;
-  }
+/**
+ * Validates whether a provided URL links to an image.
+ * @param url The URL to validate.
+ * @remarks Uses <https://www.zhenghao.io/posts/verify-image-url>
+ */
+export default async function isValidImage(url: string) {
+  const res = await fetch(url, { method: 'HEAD' });
+  return res.headers.get('content-type')?.startsWith('image/');
 }

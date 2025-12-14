@@ -56,7 +56,7 @@ export default function AddEventForm() {
     setErrorMessage('');
     setImageUrlError('');
 
-    if (formState.imageUrl && !isValidImage(formState.imageUrl)) {
+    if (formState.imageUrl && !await isValidImage(formState.imageUrl)) {
       setImageUrlError('Image URL must point to an image (e.g., .jpg, .png, .webp).');
       setSubmitting(false);
       return;
