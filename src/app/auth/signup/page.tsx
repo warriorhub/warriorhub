@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as Yup from 'yup';
-import { Card, Col, Container, Button, Form, Row, Alert } from 'react-bootstrap';
+import { Alert, Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
 import { signUp } from '@/lib/dbActions';
+import { SignUpSchema } from '@/lib/validationSchemas';
 
 type SignUpForm = {
   email: string;
@@ -14,25 +14,11 @@ type SignUpForm = {
   confirmPassword: string;
 };
 
-/** The sign up page. */
+/** The sign-up page. */
 const SignUp = () => {
   const router = useRouter();
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validationSchema = Yup.object().shape({
-    email: Yup.string()
-      .required('Email is required')
-      .email('Email is invalid')
-      .test('hawaii-edu', 'Must be a @hawaii.edu email', (value) => value?.endsWith('@hawaii.edu')),
-    password: Yup.string()
-      .required('Password is required')
-      .min(6, 'Password must be at least 6 characters')
-      .max(40, 'Password must not exceed 40 characters'),
-    confirmPassword: Yup.string()
-      .required('Confirm Password is required')
-      .oneOf([Yup.ref('password'), ''], 'Confirm Password does not match'),
-  });
 
   const {
     register,
@@ -40,7 +26,7 @@ const SignUp = () => {
     reset,
     formState: { errors },
   } = useForm<SignUpForm>({
-    resolver: yupResolver(validationSchema),
+    resolver: yupResolver(SignUpSchema),
   });
 
   const onSubmit = async (data: SignUpForm) => {
